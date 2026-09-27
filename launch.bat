@@ -11,7 +11,11 @@ echo Demarrage de l'application hors-ligne...
 python --version >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     echo Python detecte. Lancement via le serveur local optimise...
-    python launcher.py
+    if exist "apps.py" (
+        python apps.py
+    ) else (
+        python launcher.py
+    )
 ) else (
     echo Python non detecte. Ouverture directe dans votre navigateur par defaut...
     start index.html

@@ -1,143 +1,179 @@
 # 🤖 Club Robotique — Lycée Moderne 1 d'Abobo
-> **Application de Gestion Quotidienne des Présences & Registre d'Émargement**  
-> **DRENA : ABIDJAN 4 • RÉPUBLIQUE DE CÔTE D'IVOIRE**
+
+<p align="center">
+  <img src="assets/images/logo_club.jpeg" alt="Logo Club Robotique" width="90" style="border-radius: 50%; vertical-align: middle; margin-right: 15px;" />
+  <img src="assets/images/logo_lycee.png" alt="Logo Lycée Moderne 1 Abobo" width="90" style="vertical-align: middle; margin-left: 15px;" />
+</p>
+
+<p align="center">
+  <strong>Application de Gestion Quotidienne des Présences & Registre d'Émargement Officiel</strong><br>
+  <em>DRENA : ABIDJAN 4 • RÉPUBLIQUE DE CÔTE D'IVOIRE • ANNÉE SCOLAIRE 2025-2026</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Lyc%C3%A9e%20Moderne%201%20d'Abobo-DRENA%20Abidjan%204-008751?style=for-the-badge&logo=target&logoColor=white" alt="Lycée Moderne 1 d'Abobo" />
+  <img src="https://img.shields.io/badge/Version-2.0.0-0284c7?style=for-the-badge&logo=git&logoColor=white" alt="Version 2.0" />
+  <img src="https://img.shields.io/badge/Mode-100%25%20Hors--Ligne-059669?style=for-the-badge&logo=pwa&logoColor=white" alt="100% Hors-Ligne" />
+  <img src="https://img.shields.io/badge/Base%20de%20Donn%C3%A9es-Google%20Sheets-34a853?style=for-the-badge&logo=googlesheets&logoColor=white" alt="Google Sheets smartPresence" />
+  <img src="https://img.shields.io/badge/Compatibilit%C3%A9-Windows%2010%20%2F%2011%20%2F%20macOS-0078d4?style=for-the-badge&logo=windows&logoColor=white" alt="Windows Compatible" />
+  <img src="https://img.shields.io/badge/Ex%C3%A9cutable-PyInstaller%20.EXE-ffde57?style=for-the-badge&logo=python&logoColor=black" alt="PyInstaller" />
+</p>
 
 ---
 
 ## 📋 Présentation du Projet
 
-Cette application a été conçue sur mesure pour les besoins du **Club Scientifique et Robotique du Lycée Moderne 1 d'Abobo**.  
-Elle permet à l'encadreur ou au responsable du club d'effectuer l'appel de chaque séance, de suivre l'assiduité des élèves en temps réel, d'exporter instantanément des fiches de présence officielles en PDF avec signatures et logos institutionnels, et de synchroniser toutes les données de manière bidirectionnelle avec **Google Sheets** sans aucune manipulation manuelle complexe.
+Cette application a été conçue sur mesure pour les besoins du **Club Scientifique et Robotique du Lycée Moderne 1 d'Abobo** (DRENA Abidjan 4).
 
-L'application est **100% Hors-Ligne (Offline-First)** : elle s'exécute sur n'importe quel ordinateur Windows, même sans aucune connexion Internet au lycée. Dès qu'une connexion réseau est détectée, un simple clic permet d'envoyer les présences vers le classeur Google Sheets officiel.
+Elle permet à l'encadreur ou au responsable d'atelier :
+1. **D'effectuer l'appel de chaque séance en quelques secondes** via une interface moderne, fluide et réactive.
+2. **De suivre l'assiduité en temps réel** (inscrits, présents, absents, taux de présence en pourcentages).
+3. **De filtrer instantanément** la promotion par **Genre (Filles / Garçons)** et par **Âge dynamique** (11 ans, 12 ans, 13 ans, 14 ans...).
+4. **D'exporter instantanément des fiches de présence officielles en PDF A4** conformes aux exigences administratives (double logo institutionnel, tableau d'émargement et cadre de signature de l'encadreur).
+5. **De synchroniser de manière bidirectionnelle** toutes les données avec le classeur **Google Sheets (`smartPresence`)** dès qu'Internet est disponible.
+
+> ⚡ **Architecture 100% Offline-First :** L'application fonctionne sans aucune connexion Internet dans les salles de classe du lycée. Toutes les opérations sont conservées localement et synchronisées en un clic dès le retour du réseau.
 
 ---
 
-## ✨ Ce qui a été Réalisé & Fonctionnalités Clés
+## ✨ Fonctionnalités Réalisées & Atouts Techniques
 
-### 1. 🗄️ Base de Données Directe Google Sheets (smartPresence)
-- **Architecture sans intermédiaire payant** : Le classeur Google Sheets `smartPresence` sert de base de données centrale.
-- **Google Apps Script (`Code.gs`) intégré** : Un Web Service sécurisé traite les requêtes `GET` (chargement des élèves et historiques) et `POST` (enregistrement des fiches d'appel).
-- **Liaison automatique dans le code** : L'URL du script est codée directement dans le système (`app.js`). Aucune saisie d'URL n'est demandée à l'utilisateur dans l'interface.
-- **Synchronisation bidirectionnelle** :
-  - `Élèves` : enregistre la fiche signalétique des élèves (Matricule, Nom, Prénoms, Sexe, Âge, Classe, Contact Parent, Statut).
-  - `Présences` : synthèse et statistiques par séance.
-  - `Détail_Appels` : ligne par ligne avec horodatage pour un audit exhaustif.
+### 1. 🗄️ Base de Données Directe Google Sheets (`smartPresence`)
+- **Connexion transparente sans intermédiaire payant** : Le classeur Google Sheets officiel `smartPresence` sert de base centrale pérenne.
+- **Script Google Apps Script (`Code.gs`) intégré** : Traite les requêtes sécurisées `GET` (chargement initial et réactualisation) et `POST` (sauvegarde des listes d'élèves et des émargements).
+- **Liaison automatique dans le code** : L'URL du script web est directement intégrée dans `app.js` sans demander aucune saisie manuelle d'URL aux encadreurs.
+- **Gestion stricte des numéros de téléphone ivoiriens (10 chiffres)** : La colonne des contacts est automatiquement verrouillée en format *Texte Brut* (`@`) pour empêcher Google Sheets de supprimer le `0` initial (`07...`, `05...`, `01...`).
+- **Structure des 3 onglets Google Sheets** :
+  - `Élèves` : registre complet (Matricule, Nom, Prénom, Sexe, Âge, Classe, Contact Parents, Statut).
+  - `Présences` : historique séance par séance avec décompte des présents/absents et taux.
+  - `Détail_Appels` : traçabilité élève par élève avec horodatage exact pour audit.
 
-### 2. 👥 Base Initiale Complète des 44 Élèves
-- Les 44 membres officiels du Club Robotique ont été intégrés avec leurs matricules officiels, leurs classes (de la 6ème à la 4ème : `6e 6`, `5e 7`, `5e 6`, `5e 5`, `5e 4`, `4e 7`, `4e 6`, `4e 4`, `4e 3`, `4e 2`), âges et numéros de téléphone des parents.
-- Système de recherche instantanée par nom ou matricule.
-- Filtrage rapide par classe.
+### 2. 👥 Base Intégrée des 45 Élèves Officiels & Âges Dynamiques
+- Les **45 membres officiels du Club Robotique** sont pré-chargés avec leurs matricules, classes (de la 6ème à la 4ème : `6e 6`, `5e 7`, `5e 6`, `5e 5`, `5e 4`, `4e 7`, `4e 6`, `4e 4`, `4e 3`, `4e 2`), sexes et contacts parents.
+- **Calcul automatique de l'âge** : Les âges sont calculés en temps réel en fonction de l'année de naissance et de l'année en cours (mise à jour automatique au 1er janvier sans recalcul manuel).
+- **Ajout, modification et suppression d'élèves** intégrés avec prévisualisation immédiate de l'âge.
 
-### 3. ⚡ Appel Quotidien Rapide & Intuitif
-- Bouton **« Tout cocher présent »** pour valider toute la promotion en un clic, puis décocher uniquement les absents.
-- Bouton **« Tout décocher »** pour réinitialiser la séance.
-- Compteurs dynamiques en temps réel :
-  - **Inscrits** (Total des élèves actifs)
-  - **Présents** (Nombre d'élèves ayant émargé)
-  - **Absents** (Nombre d'élèves manquants)
-  - **Taux de présence (%)** avec jauge visuelle instantanée.
+### 3. 🎯 Nouveau Système de Filtres & Ergonomie en Deux Lignes
+Pour une lisibilité optimale sur les écrans d'ordinateurs et ordinateurs portables de classe :
+- **Ligne 1 (Recherche & Appel rapide)** :
+  - Barre de recherche en temps réel par Nom, Prénom ou Matricule avec bouton rapide d'effacement (✕).
+  - Boutons d'appel rapide : **`✓ Tout cocher`** (pointe les élèves filtrés en 1 clic) et **`✕ Tout décocher`**.
+- **Ligne 2 (Filtres ciblés & Statut)** :
+  - **Filtre par Genre** : `👥 Tous les genres`, `👧 Filles (F)`, `👦 Garçons (M)`.
+  - **Filtre par Âge dynamique** : `🎂 Tous les âges` avec décompte exact d'élèves par âge (ex : *12 ans (16)*, *13 ans (17)*, *14 ans (10)*...).
+  - Bouton **`↺ Réinitialiser`** (apparaît instantanément dès qu'un filtre est actif).
+  - Indicateur de décompte en direct (*« 16 élèves affichés sur 45 »*).
 
-### 4. 📄 Génération Immédiate de la Fiche de Présence Officielle (PDF A4)
-- Conçue pour l'administration du Lycée Moderne 1 d'Abobo et la DRENA Abidjan 4.
+### 4. 📄 Génération PDF Officielle Conforme DRENA Abidjan 4 (Format A4)
 - **Double logo officiel intégré** :
   - Logo du Club Scientifique & Robotique à gauche.
   - Logo officiel du Lycée Moderne 1 d'Abobo à droite.
-- En-tête officiel : *République de Côte d'Ivoire, Ministère de l'Éducation Nationale et de l'Alphabétisation, DRENA Abidjan 4*.
-- Tableau d'émargement complet avec statut (PRÉSENT / ABSENT).
-- Cadre réservé pour la **Signature et Visa de l'Encadreur / Responsable du Club**.
-- **Bibliothèques PDF embarquées localement** (`assets/js/`) pour générer les PDF même sans Internet.
+- En-tête ministériel officiel : *République de Côte d'Ivoire • Ministère de l'Éducation Nationale et de l'Alphabétisation • DRENA : ABIDJAN 4*.
+- Tableau d'émargement propre avec matricules, noms, âges, contacts et mention **PRÉSENT**.
+- Emplacement réservé pour **le visa, la signature et le cachet de l'encadreur**.
+- **Bibliothèques PDF embarquées localement** (`assets/js/jspdf.umd.min.js`) : fonctionne à 100% hors-ligne sans connexion CDN externe.
 
 ### 5. 🔌 Mode Hors-Ligne Total (Offline-First)
-- Toutes les données sont sauvegardées en continu dans le stockage local de l'ordinateur (`localStorage`).
-- Indicateur visuel d'état réseau en haut à droite (**En ligne** / **Hors-ligne**).
-- Bandeau d'alerte dès la détection d'Internet pour envoyer les données en attente vers Google Sheets.
+- Sauvegarde continue dans le `localStorage` du navigateur : aucune perte de données en cas de coupure de courant ou de fermeture accidentelle.
+- Badge d'état réseau en temps réel (**En ligne** / **Hors-ligne**).
+- Bandeau de reconnexion automatique invitant à synchroniser vers Google Sheets dès qu'Internet revient.
+- Boutons d'export/sauvegarde de secours en fichier JSON.
 
 ---
 
-## 💻 Comment Déployer & Utiliser sur n'importe quel Ordinateur Windows
+## 💻 Guide d'Installation & Déploiement sur Windows
 
-Vous pouvez installer et faire tourner l'application sur tous les ordinateurs du lycée via 3 méthodes différentes :
+Vous avez **4 méthodes simples** pour installer et exécuter l'application sur n'importe quel ordinateur Windows du lycée :
 
-### 🟢 Méthode 1 : Le Lancement en 1 Clic (Recommandé sur Windows)
-Dans le dossier du projet, un fichier exécutable batch a été créé :
-1. Copiez le dossier du projet sur une clé USB ou directement sur le bureau du PC Windows.
-2. Double-cliquez simplement sur :
+---
+
+### 🟢 Méthode 1 : Lancement en 1 Clic (Recommandé — Sans rien installer)
+
+C'est la méthode la plus rapide pour les encadreurs :
+1. Copiez l'intégralité du dossier du projet sur une **clé USB** ou sur le **Bureau** du PC Windows.
+2. Double-cliquez simplement sur l'un des fichiers batch :
    ```text
    LANCER_APPLICATION.bat
    ```
-3. L'application démarre immédiatement et s'ouvre dans votre navigateur web par défaut (Google Chrome, Microsoft Edge, etc.).
+   *(ou `launch.bat`)*
+3. Le script détecte votre environnement, démarre le service local et ouvre automatiquement votre navigateur par défaut (Google Chrome ou Microsoft Edge).
 
 ---
 
-### 🟡 Méthode 2 : Lancement Portable avec Python
-Si Python est installé sur la machine Windows :
-1. Ouvrez l'invite de commande (CMD) dans le dossier du projet.
-2. Exécutez la commande :
-   ```bash
-   python launcher.py
-   ```
-3. Le script démarre un serveur local autonome et ouvre la page sur `http://localhost:8080`.
+### 🟡 Méthode 2 : Compiler un Exécutable Windows `.exe` Autonome (PyInstaller)
 
-#### Optionnel : Transformer en vrai fichier `.exe` Windows autonome
-Pour créer un fichier `.exe` que l'on peut installer sans avoir besoin d'ouvrir de console :
-```bash
+Pour transformer l'application en un véritable logiciel Windows `.exe` sans invite de commande :
+
+#### 1. Prérequis sur Windows
+Assurez-vous que Python est installé sur votre ordinateur Windows (cochez bien l'option *"Add Python to PATH"* lors de l'installation).
+
+#### 2. Ouvrir le terminal dans le dossier du projet
+Dans l'Explorateur Windows, faites un clic droit dans le dossier du projet > **« Ouvrir dans le Terminal »** (ou tapez `cmd` dans la barre d'adresse du dossier).
+
+#### 3. Installer PyInstaller
+```cmd
 pip install pyinstaller
-pyinstaller --onefile --noconsole --name "ClubRobotique_Abobo" apps.py
 ```
-Le fichier `ClubRobotique_Abobo.exe` généré dans le sous-dossier `dist` peut être placé sur n'importe quel PC Windows !
+*(ou si vous utilisez uv : `uv pip install pyinstaller`)*
+
+#### 4. Compiler le fichier `.exe`
+> ⚠️ **IMPORTANT SUR WINDOWS :**  
+> Contrairement à macOS/Linux qui utilise deux-points (`:`), **Windows exige un point-virgule (`;`)** pour séparer les fichiers dans l'option `--add-data`.
+
+Exécutez la commande suivante sur une seule ligne :
+```cmd
+pyinstaller --onefile --noconsole --name "ClubRobotique_Abobo" --add-data "index.html;." --add-data "style.css;." --add-data "app.js;." --add-data "assets;assets" apps.py
+```
+
+#### 5. Résultat
+- Votre exécutable autonome **`ClubRobotique_Abobo.exe`** est généré dans le sous-dossier **`dist/`**.
+- Copiez ce fichier `.exe` sur n'importe quelle clé USB : il se lance d'un simple double-clic sur n'importe quel PC Windows, sans nécessiter Python ni connexion Internet !
 
 ---
 
-### 🔵 Méthode 3 : Installer comme Application de Bureau (PWA via Chrome ou Edge)
-Google Chrome et Microsoft Edge permettent de transformer ce site en véritable application Windows avec icône sur le bureau et dans le menu Démarrer :
-1. Lancez l'application une première fois dans **Chrome** ou **Edge**.
-2. Dans la barre d'adresse tout à droite, cliquez sur la petite icône **« Installer l'application »** (ou menu `...` > **Applications** > **Installer ce site en tant qu'application**).
-3. Une icône **Club Robotique** apparaît sur votre Bureau Windows.
-4. L'application s'ouvre désormais dans sa propre fenêtre indépendante, sans barre de navigation, exactement comme un logiciel Windows natif (Word, Excel, etc.), et fonctionne à 100% sans Internet !
+### 🔵 Méthode 3 : Installer comme Application de Bureau Native (PWA Chrome / Edge)
+
+Google Chrome et Microsoft Edge permettent de transformer l'interface en une vraie application Windows avec raccourci sur le Bureau et dans le menu Démarrer :
+1. Lancez l'application dans **Google Chrome** ou **Microsoft Edge**.
+2. Dans la barre d'adresse à droite, cliquez sur l'icône **« Installer l'application »** (ou via le menu `⋮` > **Applications** > **Installer ce site en tant qu'application**).
+3. Une icône officielle **Club Robotique** est créée sur votre Bureau Windows.
+4. L'application s'ouvre désormais dans sa propre fenêtre indépendante, sans barre de navigation, comme un logiciel bureautique natif (Word, Excel), et fonctionne à 100% hors-ligne.
 
 ---
 
-## 🚀 Pistes d'Améliorations Futures (Roadmap)
+### 🟣 Méthode 4 : Lancement Manuel avec Python
 
-Voici les fonctionnalités prêtes à être déployées lors des prochaines versions :
+Si vous préférez exécuter le serveur local en ligne de commande :
+```bash
+python apps.py
+```
+*(ou `python launcher.py`)*
 
-### 1. 📲 Notification WhatsApp / SMS Directe aux Parents
-- Bouton vert WhatsApp sur la ligne de chaque élève absent.
-- Message pré-rempli en un clic :
-  > *"Bonjour cher parent, nous vous informons que votre enfant [Nom Prénom] de la classe [Classe] n'a pas répondu présent à la séance du Club Robotique de ce [Date] au Lycée Moderne 1 d'Abobo. Merci de bien vouloir nous contacter en cas d'empêchement justifié."*
-
-### 2. 🪪 Cartes de Membre avec QR Code & Émargement par Caméra
-- Génération automatique de badges/cartes de membres pour les 44 élèves.
-- Scan du QR Code via la webcam du PC portable ou la caméra du téléphone pour pointer l'élève en moins d'une seconde.
-
-### 3. 📊 Tableau de Bord d'Assiduité & Alertes d'Absences Répétées
-- Identification automatique des élèves ayant plus de 2 ou 3 absences consécutives.
-- Graphiques d'évolution des présences par niveau (`6e`, `5e`, `4e`).
-- Synthèse trimestrielle prête à être remise à la Direction du Lycée ou à la DRENA Abidjan 4.
-
-### 4. 🔄 Synchronisation Automatique Périodique en Arrière-plan
-- Envoi automatique des données dès qu'un réseau Wi-Fi ou partage de connexion 4G est connecté, sans action manuelle.
+Le script démarre automatiquement un serveur HTTP local sur le port `8080` et ouvre votre navigateur sur `http://localhost:8080`.
 
 ---
 
-## 📁 Structure des Fichiers du Projet
+## 📁 Arborescence des Fichiers du Projet
 
 ```text
-├── index.html                 # Interface utilisateur principale
-├── style.css                  # Design moderne aux couleurs institutionnelles
-├── app.js                     # Logique d'émargement, calculs et communication Sheets
-├── Code.gs                    # Script Google Apps Script déployé sur Google Drive
-├── launcher.py                # Lanceur local portable Python
-├── LANCER_APPLICATION.bat     # Fichier batch Windows de démarrage en 1 clic
+smartPresence/
+├── index.html                 # Interface web épurée avec filtres Genre/Âge et appel rapide
+├── style.css                  # Feuilles de styles modernes, responsive et contrastées
+├── app.js                     # Logique métier : 45 élèves, filtres, âges dynamiques & Sheets
+├── Code.gs                    # Web Service Google Apps Script pour Google Sheets
+├── apps.py                    # Serveur Python autonome avec support _MEIPASS (PyInstaller)
+├── launcher.py                # Lanceur portable alternatif
+├── LANCER_APPLICATION.bat     # Lanceur Windows 1-clic principal
+├── launch.bat                 # Lanceur Windows 1-clic secondaire
 ├── assets/
 │   ├── images/
-│   │   ├── logo_club.jpeg     # Logo du Club Scientifique & Robotique
+│   │   ├── logo_club.jpeg     # Logo officiel du Club Scientifique & Robotique
 │   │   └── logo_lycee.png     # Logo officiel du Lycée Moderne 1 d'Abobo
 │   └── js/
-│       ├── jspdf.umd.min.js             # Moteur de génération PDF hors-ligne
-│       └── jspdf.plugin.autotable.min.js# Plugin de tableaux PDF hors-ligne
-└── README.md                  # Documentation complète du projet
+│       ├── jspdf.umd.min.js             # Moteur PDF embarqué hors-ligne
+│       ├── jspdf.umd.min.js.map         # Sourcemap pour développement propre
+│       └── jspdf.plugin.autotable.min.js# Module de tableau d'émargement PDF
+└── README.md                  # Documentation officielle du projet
 ```
 
 ---
@@ -145,15 +181,28 @@ Voici les fonctionnalités prêtes à être déployées lors des prochaines vers
 ## ⚙️ Configuration & Maintenance du Google Apps Script (`Code.gs`)
 
 Pour mettre à jour ou inspecter le script lié à votre classeur Google Sheets **smartPresence** :
-1. Rendez-vous sur votre Google Drive et ouvrez le classeur **`smartPresence`**.
+1. Ouvrez votre classeur Google Sheets **`smartPresence`** sur Google Drive.
 2. Cliquez sur le menu supérieur : **Extensions** > **Apps Script**.
-3. Le code présent correspond exactement au fichier **`Code.gs`** de ce projet.
-4. Pour déployer toute modification :
-   - Cliquez sur **Déployer** > **Gérer les déploiements**.
+3. Remplacez le code existant par le contenu complet du fichier **`Code.gs`** du projet.
+4. Cliquez sur **Enregistrer** (icône disquette).
+5. Cliquez sur **Déployer** > **Gérer les déploiements** :
    - Cliquez sur l'icône **Crayon (Modifier)**.
-   - Sélectionnez Version : **« Nouvelle version »**.
-   - Cliquez sur **Déployer**. L'URL `/exec` reste identique et l'application continue de fonctionner sans interruption.
+   - Version : sélectionnez **« Nouvelle version »**.
+   - Cliquez sur **Déployer**.  
+   *(L'URL de synchronisation `/exec` reste strictement identique et l'application continue de fonctionner sans interruption).*
 
 ---
 
-**Développé pour l'excellence et la promotion des sciences technologiques au Lycée Moderne 1 d'Abobo.** 🚀
+## 🚀 Pistes d'Améliorations Futures (Roadmap)
+
+1. **📲 Notification WhatsApp / SMS Directe aux Parents** : Bouton sur la ligne d'un absent pour ouvrir un message WhatsApp pré-rempli adressé au contact parent.
+2. **🪪 Badges avec QR Code & Scan Webcam** : Pointage instantané de l'élève à l'entrée de la salle en scannant sa carte de membre.
+3. **📊 Tableau de Bord d'Assiduité Annuel** : Statistiques trimestrielles des absences répétées pour transmission à la Direction du Lycée et à la DRENA Abidjan 4.
+4. **🔄 Synchronisation Silencieuse en Tâche de Fond** : Mise à jour automatique de Google Sheets dès détection d'une connexion Wi-Fi ou partage 4G.
+
+---
+
+<p align="center">
+  <strong>Conçu avec passion pour l'excellence scientifique et la robotique au Lycée Moderne 1 d'Abobo.</strong><br>
+  🇨🇮 <em>République de Côte d'Ivoire — Union • Discipline • Travail</em>
+</p>
