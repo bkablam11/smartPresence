@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Club Robotique - Abobo</title>
+  <meta name="description" content="Application de gestion de présence quotidienne du Club Robotique du Lycée Moderne 1 d'Abobo.">
+  <link rel="icon" type="image/jpeg" href="./assets/images/logo_club.jpeg">
+
+  <!-- Feuilles de styles -->
+  <link rel="stylesheet" href="./style.css">
+
+  <!-- Librairies PDF (Fichiers locaux pour fonctionner 100% hors-ligne sans connexion Internet) -->
+  <script src="./assets/js/jspdf.umd.min.js"></script>
+  <script src="./assets/js/jspdf.plugin.autotable.min.js"></script>
+  <script>
+    // Secours CDN si les fichiers locaux ne sont pas trouvés
+    if (!window.jspdf) {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>');
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"><\/script>');
+    }
+  </script>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- EN-TÊTE PRINCIPAL (CLUB À GAUCHE, LYCÉE À DROITE) -->
+    <header class="app-header">
+      <div class="header-content">
+        <div class="brand-section">
+          <div class="logos-wrapper">
+            <!-- Logo Club Scientifique à gauche -->
+            <div class="logo-box" title="Club Scientifique & Robotique">
+              <img src="./assets/images/logo_club.jpeg" alt="Logo Club Robotique">
+            </div>
+            <!-- Logo Lycée Moderne 1 Abobo à droite -->
+            <div class="logo-box" title="Lycée Moderne 1 d'Abobo">
+              <img src="./assets/images/logo_lycee.png" alt="Logo Lycée Moderne 1 Abobo">
+            </div>
+          </div>
+          <div class="brand-text">
+            <span class="tagline">DRENA : ABIDJAN 4 • CÔTE D'IVOIRE</span>
+            <h1>Club Robotique</h1>
+            <p>Lycée Moderne 1 d'Abobo — Registre & Gestion d'Appel</p>
+          </div>
+        </div>
+
+        <div class="header-controls">
+          <!-- Indicateur Réseau : Hors-ligne / En ligne -->
+          <div id="networkBadge" class="status-badge status-online">
+            <span class="dot-pulse"></span> En ligne
+          </div>
+
+          <!-- Sélecteur de Date -->
+          <div class="date-picker-box">
+            <label for="datePicker">Date de séance</label>
+            <input type="date" id="datePicker">
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- BANDEAU DE RECONNEXION INTERNET -->
+    <div id="reconnectBanner" class="reconnect-banner hidden">
+      <div class="banner-left">
+        <span>🌐</span>
+        <span><strong>Connexion Internet rétablie !</strong> Vos modifications locales sont prêtes à être transmises vers votre Google Sheet.</span>
+      </div>
+      <div class="banner-actions">
+        <button class="btn-banner" onclick="syncToGoogleSheet()">Synchroniser maintenant</button>
+        <button class="btn-close-banner" onclick="document.getElementById('reconnectBanner').classList.add('hidden')">✕</button>
+      </div>
+    </div>
+
+    <!-- BARRE DE STATISTIQUES EN DIRECT -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Élèves Inscrits</span>
+        <span class="stat-value" id="statTotal">0</span>
+      </div>
+      <div class="stat-card stat-present">
+        <span class="stat-label">Présents</span>
+        <span class="stat-value" id="statPresent">0</span>
+      </div>
+      <div class="stat-card stat-absent">
+        <span class="stat-label">Absents</span>
+        <span class="stat-value" id="statAbsent">0</span>
+      </div>
+      <div class="stat-card stat-rate">
+        <span class="stat-label">Taux Présence</span>
+        <span class="stat-value" id="statRate">0%</span>
+      </div>
+    </section>
+
+    <!-- ZONE PRINCIPALE : 2 COLONNES -->
+    <div class="layout-grid">
+      
+      <!-- COLONNE GAUCHE (GOOGLE SHEETS, PDF, FORMULAIRE) -->
+      <aside class="sidebar-column">
+        
+        <!-- BLOC SYNCHRONISATION GOOGLE SHEETS (BASE DE DONNÉES) -->
+        <div class="card sheets-card">
+          <div class="sheets-card-header">
+            <h2 class="sheets-card-title">
+              <span>📊</span> Google Sheets
+            </h2>
+            <span class="db-badge">
+              smartPresence
+            </span>
+          </div>
+          <p class="sheets-desc">
+            Base de données active liée au classeur <strong>smartPresence</strong>. Les données vont et viennent automatiquement entre l'application et votre feuille de calcul.
+          </p>
+
+          <div class="db-connection-status">
+            <span class="db-dot"></span>
+            <span>Connexion active au script Code.gs</span>
+          </div>
+
+          <div class="sheets-actions">
+            <button id="btnSync" class="btn-sync" onclick="syncToGoogleSheet()">
+              <span>🔄</span> Envoyer vers Google Sheets
+            </button>
+            <button id="btnFetch" class="btn-fetch" onclick="fetchFromGoogleSheet()">
+              <span>⬇️</span> Recharger depuis Google Sheets
+            </button>
+          </div>
+          
+          <div class="sync-meta" id="lastSyncLabel">
+            Chargement de la base de données...
+          </div>
+        </div>
+
+        <!-- BLOC TÉLÉCHARGEMENT PDF -->
+        <div class="pdf-card">
+          <h3>Fiche d'appel officielle (PDF)</h3>
+          <p>Téléchargez la feuille de présence prête pour impression avec émargements et signatures officielles.</p>
+          <button class="btn-pdf" onclick="downloadAttendancePDF()">
+            <span>📄</span> Générer le PDF du jour
+          </button>
+        </div>
+
+        <!-- FORMULAIRE AJOUT ÉLÈVE -->
+        <div class="card">
+          <h3 class="form-title">
+            <span>➕ Ajouter un élève</span>
+          </h3>
+          <form id="addStudentForm">
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="newNom">Nom (Majuscules) *</label>
+                <input type="text" id="newNom" required placeholder="KOFFI">
+              </div>
+              <div class="form-group">
+                <label for="newPrenom">Prénom *</label>
+                <input type="text" id="newPrenom" required placeholder="Jean">
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="newClasse">Classe</label>
+                <select id="newClasse">
+                  <option value="6e 6">6e 6</option>
+                  <option value="5e 7">5e 7</option>
+                  <option value="5e 6">5e 6</option>
+                  <option value="5e 5">5e 5</option>
+                  <option value="5e 4">5e 4</option>
+                  <option value="4e 7">4e 7</option>
+                  <option value="4e 6">4e 6</option>
+                  <option value="4e 4">4e 4</option>
+                  <option value="4e 3">4e 3</option>
+                  <option value="4e 2">4e 2</option>
+                  <option value="3e 1">3e 1</option>
+                  <option value="Autre">Autre</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="newSexe">Sexe</label>
+                <select id="newSexe">
+                  <option value="F">Féminin</option>
+                  <option value="M">Masculin</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="newMatricule">Matricule</label>
+                <input type="text" id="newMatricule" placeholder="25126750-W">
+              </div>
+              <div class="form-group">
+                <label for="newAge">Âge</label>
+                <input type="number" id="newAge" placeholder="13">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="newContact">Contact des parents</label>
+              <input type="text" id="newContact" placeholder="0707607293">
+            </div>
+
+            <button type="submit" class="btn-submit">Enregistrer l'élève</button>
+          </form>
+        </div>
+
+        <!-- OUTILS DE SAUVEGARDE LOCALE -->
+        <div class="card" style="display: flex; gap: 8px;">
+          <button class="btn-secondary" style="flex: 1;" onclick="resetToDefaultStudents()" title="Restaurer la liste officielle des élèves">
+            ↺ Restaurer liste (45)
+          </button>
+          <button class="btn-secondary" style="flex: 1;" onclick="exportJSON()" title="Sauvegarder un fichier JSON sur votre ordi">
+            💾 Export JSON
+          </button>
+        </div>
+
+      </aside>
+
+      <!-- COLONNE DROITE (LISTE D'APPEL DES ÉLÈVES) -->
+      <main class="main-column">
+        
+        <!-- BARRE DE RECHERCHE ET ACTIONS GLOBALES -->
+        <div class="list-controls">
+          <div class="search-filter-box">
+            <div class="search-box">
+              <input type="text" id="searchInput" placeholder="Rechercher par nom, prénom ou matricule...">
+            </div>
+            <select id="filterClass" class="filter-select">
+              <option value="">Toutes les classes</option>
+              <option value="6e 6">6e 6</option>
+              <option value="5e 7">5e 7</option>
+              <option value="5e 6">5e 6</option>
+              <option value="5e 5">5e 5</option>
+              <option value="5e 4">5e 4</option>
+              <option value="4e 7">4e 7</option>
+              <option value="4e 6">4e 6</option>
+              <option value="4e 4">4e 4</option>
+              <option value="4e 3">4e 3</option>
+              <option value="4e 2">4e 2</option>
+              <option value="3e 1">3e 1</option>
+            </select>
+          </div>
+
+          <div class="quick-buttons">
+            <button class="btn-secondary" onclick="checkAllPresent()">✓ Tout cocher</button>
+            <button class="btn-secondary" onclick="uncheckAll()">✕ Tout décocher</button>
+          </div>
+        </div>
+
+        <!-- CONTENEUR DES ÉLÈVES -->
+        <div id="studentsList" class="students-list">
+          <!-- Généré dynamiquement en pur JS -->
+        </div>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL DE MODIFICATION ÉLÈVE -->
+  <div id="editModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Modifier l'élève</h3>
+        <button class="btn-close-modal" onclick="closeEditModal()">✕</button>
+      </div>
+      <form id="editStudentForm">
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="editNom">Nom</label>
+            <input type="text" id="editNom" required>
+          </div>
+          <div class="form-group">
+            <label for="editPrenom">Prénom</label>
+            <input type="text" id="editPrenom" required>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="editClasse">Classe</label>
+            <select id="editClasse">
+              <option value="6e 6">6e 6</option>
+              <option value="5e 7">5e 7</option>
+              <option value="5e 6">5e 6</option>
+              <option value="5e 5">5e 5</option>
+              <option value="5e 4">5e 4</option>
+              <option value="4e 7">4e 7</option>
+              <option value="4e 6">4e 6</option>
+              <option value="4e 4">4e 4</option>
+              <option value="4e 3">4e 3</option>
+              <option value="4e 2">4e 2</option>
+              <option value="3e 1">3e 1</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="editSexe">Sexe</label>
+            <select id="editSexe">
+              <option value="F">Féminin</option>
+              <option value="M">Masculin</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="editMatricule">Matricule</label>
+            <input type="text" id="editMatricule">
+          </div>
+          <div class="form-group">
+            <label for="editAge">Âge</label>
+            <input type="number" id="editAge">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="editContact">Contact des parents</label>
+          <input type="text" id="editContact">
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 1rem;">
+          <button type="button" class="btn-secondary" style="flex: 1;" onclick="closeEditModal()">Annuler</button>
+          <button type="submit" class="btn-submit" style="flex: 1;">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- NOTIFICATION TOAST -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- SCRIPT APPLICATION PUR JAVASCRIPT -->
+  <script src="./app.js"></script>
+
+</body>
+</html>
