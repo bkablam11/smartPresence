@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environnements virtuels
+.venv/
+venv/
+env/
+ENV/
+
+# Builds PyInstaller
+/build/
+/dist/
+*.manifest
+*.spec.bak
+
+# Fichiers temporaires et journaux
+*.log
+*.tmp
+*.bak
+
+# Fichiers système et éditeurs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+ClubRobotique_Abobo.spec
