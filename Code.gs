@@ -1,47 +1,117 @@
 /**
  * CLUB ROBOTIQUE - LYCÉE MODERNE 1 D'ABOBO
  * Script Google Apps Script (Code.gs)
+ * Base de données Google Sheets bi-directionnelle (Lecture et Écriture)
  * 
- * Ce script permet de recevoir les données de présence et la liste des élèves
- * envoyées depuis votre application web pure HTML/CSS/JS (hors-ligne et connectée).
+ * Ce script permet à votre application Web HTML/CSS/JS :
+ * 1. DE LIRE (doGet) : Récupère la liste des élèves et l'historique des présences depuis Google Sheets.
+ * 2. D'ÉCRIRE (doPost) : Enregistre les élèves, les statistiques et le détail des appels dans Google Sheets.
  * 
- * INSTRUCTIONS DE DÉPLOIEMENT :
- * 1. Ouvrez votre Google Sheet (ou créez-en un nouveau sur drive.google.com).
- * 2. Cliquez dans le menu supérieur sur : Extensions > Apps Script.
- * 3. Supprimez tout le code existant dans l'éditeur et collez l'intégralité de ce fichier.
- * 4. Cliquez sur "Enregistrer" (icône disquette).
- * 5. Cliquez sur "Déployer" (bouton bleu en haut à droite) > "Nouveau déploiement".
- * 6. Sélectionnez le type : "Application Web" (icône engrenage).
- * 7. Remplissez :
- *    - Description : "Synchro Club Robotique"
- *    - Exécuter en tant que : "Moi (votre adresse email)"
- *    - Qui a accès : "Tout le monde" (Anyone) -> OBLIGATOIRE pour que l'application puisse envoyer les données
- * 8. Cliquez sur "Déployer", autorisez les autorisations d'accès Google.
- * 9. Copiez "l'URL de l'application Web" (qui se termine par /exec).
- * 10. Collez cette URL dans votre application HTML/JS locale !
+ * INSTRUCTIONS POUR METTRE À JOUR VOTRE SCRIPT DANS GOOGLE SHEETS :
+ * 1. Dans votre Google Sheet ("smartPresence"), cliquez sur : Extensions > Apps Script.
+ * 2. Remplacez tout le code par ce fichier complet.
+ * 3. Cliquez sur "Enregistrer" (icône disquette).
+ * 4. Cliquez sur "Déployer" > "Gérer les déploiements" > Icône Crayon (Modifier)
+ *    -> Version : "Nouvelle version"
+ *    -> Cliquez sur "Déployer".
+ * (L'URL /exec reste exactement la même !)
  */
 
-// Fonction appelée lors d'un test GET (vérification que le script fonctionne)
+// 1. LECTURE (GET) : L'application récupère les données de Google Sheets
 function doGet(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheetName = ss ? ss.getName() : "Classeur actif";
-  
-  var response = {
-    status: "success",
-    message: "Le script Apps Script du Club Robotique est actif et prêt à recevoir les présences !",
-    spreadsheetName: sheetName,
-    timestamp: new Date().toISOString()
-  };
-  
-  return ContentService.createTextOutput(JSON.stringify(response))
-    .setMimeType(ContentService.MimeType.JSON);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!ss) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "error",
+        message: "Classeur Google Sheets introuvable."
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // --- LECTURE ONGLET "Élèves" ---
+    var sheetStudents = ss.getSheetByName("Élèves");
+    var students = [];
+    
+    if (sheetStudents && sheetStudents.getLastRow() > 1) {
+      var lastRow = sheetStudents.getLastRow();
+      var lastCol = Math.max(sheetStudents.getLastColumn(), 8);
+      var values = sheetStudents.getRange(2, 1, lastRow - 1, lastCol).getValues();
+      
+      for (var i = 0; i < values.length; i++) {
+        var row = values[i];
+        // En-têtes attendus : [N°, Matricule, Nom, Prénom, Sexe, Âge, Classe, Contact Parents, Statut]
+        var matricule = String(row[1] || "").trim();
+        var nom = String(row[2] || "").trim();
+        var prenom = String(row[3] || "").trim();
+        var sexe = String(row[4] || "").trim().toUpperCase();
+        var age = row[5] ? parseInt(row[5], 10) : "";
+        var classe = String(row[6] || "").trim();
+        var contact = formatContactCI(row[7]);
+        
+        if (nom || matricule) {
+          students.push({
+            id: matricule || ("STU-" + (i + 1)),
+            matricule: matricule,
+            nom: nom,
+            prenom: prenom,
+            sexe: (sexe === "M" || sexe === "GARÇON" || sexe === "GARCON") ? "M" : "F",
+            age: age || "",
+            classe: classe,
+            contact: contact
+          });
+        }
+      }
+    }
+    
+    // --- LECTURE ONGLET "Détail_Appels" (Historique des présences) ---
+    var sheetDetail = ss.getSheetByName("Détail_Appels");
+    var attendances = {}; // { [date]: { [studentId]: boolean } }
+    
+    if (sheetDetail && sheetDetail.getLastRow() > 1) {
+      var lastDetailRow = sheetDetail.getLastRow();
+      var detailValues = sheetDetail.getRange(2, 1, lastDetailRow - 1, 6).getValues();
+      
+      for (var j = 0; j < detailValues.length; j++) {
+        var dRow = detailValues[j];
+        // [Date Séance, Matricule, Nom, Prénom, Classe, Statut Présence]
+        var dDate = String(dRow[0] || "").trim();
+        var dMatricule = String(dRow[1] || "").trim();
+        var dStatut = String(dRow[5] || "").trim().toUpperCase();
+        
+        if (dDate && dMatricule) {
+          if (!attendances[dDate]) {
+            attendances[dDate] = {};
+          }
+          attendances[dDate][dMatricule] = (dStatut === "PRÉSENT" || dStatut === "PRESENT");
+        }
+      }
+    }
+    
+    var response = {
+      status: "success",
+      message: "Données chargées avec succès depuis Google Sheets !",
+      spreadsheetName: ss.getName(),
+      studentsCount: students.length,
+      students: students,
+      attendances: attendances,
+      timestamp: new Date().toISOString()
+    };
+    
+    return ContentService.createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: "Erreur lecture Google Sheets: " + err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
-// Fonction appelée lors de l'envoi des données (POST) depuis l'application HTML/JS
+// 2. ÉCRITURE (POST) : L'application enregistre les données dans Google Sheets
 function doPost(e) {
   try {
     var lock = LockService.getScriptLock();
-    // Attend jusqu'à 30 secondes pour éviter les conflits d'écriture simultanée
     lock.waitLock(30000);
     
     var rawData = e.postData.contents;
@@ -49,7 +119,13 @@ function doPost(e) {
     
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     if (!ss) {
-      throw new Error("Classeur introuvable. Assurez-vous que le script est bien lié à une feuille Google Sheets.");
+      throw new Error("Classeur introuvable. Assurez-vous que le script est lié à votre feuille Google Sheets.");
+    }
+    
+    // Si l'action demandée est juste une lecture via POST
+    if (data.action === "read" || data.action === "get") {
+      lock.releaseLock();
+      return doGet(e);
     }
     
     var students = data.students || [];
@@ -63,11 +139,10 @@ function doPost(e) {
     if (!sheetStudents) {
       sheetStudents = ss.insertSheet("Élèves", 0);
     }
-    
-    // Nettoie l'onglet
     sheetStudents.clear();
+    // Forcer la colonne H (Contact Parents) au format Texte Brut ("@") pour conserver le 0 initial
+    sheetStudents.getRange("H:H").setNumberFormat("@");
     
-    // En-têtes Élèves
     var studentHeaders = [
       "N°", 
       "Matricule", 
@@ -93,30 +168,30 @@ function doPost(e) {
         s.sexe || "",
         s.age !== undefined && s.age !== null ? s.age : "",
         s.classe || "",
-        s.contact || "",
+        formatContactCI(s.contact || ""),
         "Inscrit"
       ]);
     }
     
     if (studentRows.length > 0) {
+      sheetStudents.getRange(1, 8, studentRows.length, 1).setNumberFormat("@");
       var rangeStudents = sheetStudents.getRange(1, 1, studentRows.length, studentHeaders.length);
       rangeStudents.setValues(studentRows);
+      sheetStudents.getRange(1, 8, studentRows.length, 1).setNumberFormat("@");
       
-      // Mise en forme moderne de l'en-tête
       var headerRange1 = sheetStudents.getRange(1, 1, 1, studentHeaders.length);
       headerRange1.setBackground("#0f172a"); // Slate 900
       headerRange1.setFontColor("#ffffff");
       headerRange1.setFontWeight("bold");
       sheetStudents.setFrozenRows(1);
       
-      // Auto-dimensionnement des colonnes
       for (var col = 1; col <= studentHeaders.length; col++) {
         sheetStudents.autoResizeColumn(col);
       }
     }
     
     // ==========================================
-    // 2. ONGLET "Présences (Synthèse)"
+    // 2. ONGLET "Présences" (Synthèse globale par date)
     // ==========================================
     var sheetPresences = ss.getSheetByName("Présences");
     if (!sheetPresences) {
@@ -146,7 +221,7 @@ function doPost(e) {
       var presentStudents = [];
       for (var j = 0; j < students.length; j++) {
         var st = students[j];
-        if (dayRecord[st.id]) {
+        if (dayRecord[st.id] || dayRecord[st.matricule]) {
           presentStudents.push(st.nom + " " + st.prenom + " (" + st.classe + ")");
         }
       }
@@ -183,7 +258,7 @@ function doPost(e) {
     }
     
     // ==========================================
-    // 3. ONGLET "Détail_Appels"
+    // 3. ONGLET "Détail_Appels" (Ligne par ligne)
     // ==========================================
     var sheetDetail = ss.getSheetByName("Détail_Appels");
     if (!sheetDetail) {
@@ -210,7 +285,7 @@ function doPost(e) {
       
       for (var k = 0; k < students.length; k++) {
         var stud = students[k];
-        var isPres = !!dayAtt[stud.id];
+        var isPres = !!(dayAtt[stud.id] || dayAtt[stud.matricule]);
         
         detailRows.push([
           dateKey,
@@ -239,13 +314,12 @@ function doPost(e) {
       }
     }
     
-    // Libère le verrou
     lock.releaseLock();
     
-    // Réponse JSON avec en-têtes CORS
     var output = {
       status: "success",
       message: "Synchronisation réussie avec succès vers Google Sheets !",
+      spreadsheetName: ss.getName(),
       studentsCount: students.length,
       datesCount: dates.length,
       updatedAt: nowFormatted
@@ -259,5 +333,63 @@ function doPost(e) {
       status: "error",
       message: error.toString()
     })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// ==========================================
+// 3. FONCTIONS UTILITAIRES DE FORMATAGE
+// ==========================================
+
+/**
+ * Normalise les contacts téléphoniques de Côte d'Ivoire (10 chiffres).
+ * Si Google Sheets a supprimé le zéro initial (ex: 757882699 ou 506135513),
+ * cette fonction restaure le "0" (ex: 0757882699 ou 0506135513).
+ */
+function formatContactCI(val) {
+  if (!val && val !== 0) return "";
+  var str = String(val).trim();
+  if (!str) return "";
+  if (str.indexOf("/") !== -1) {
+    return str.split("/").map(function(p) { return formatSinglePhoneCI(p.trim()); }).filter(Boolean).join(" / ");
+  }
+  return formatSinglePhoneCI(str);
+}
+
+function formatSinglePhoneCI(p) {
+  if (!p) return "";
+  var digits = p.replace(/[^0-9]/g, "");
+  // Si le numéro a 9 chiffres et commence par 1, 5, 7 ou 2, il lui manque le 0 initial
+  if (digits.length === 9 && (digits[0] === '1' || digits[0] === '5' || digits[0] === '7' || digits[0] === '2')) {
+    return "0" + digits;
+  }
+  // Si déjà 10 chiffres commençant par 0
+  if (digits.length === 10 && digits[0] === '0') {
+    return digits;
+  }
+  return p;
+}
+
+/**
+ * Déclencheur automatique lorsque quelqu'un saisit un numéro directement dans Google Sheets :
+ * Si un utilisateur tape un contact sans le 0 (ex: 757882699 ou 0757882699),
+ * la cellule est immédiatement convertie en texte avec le 0 initial conservé !
+ */
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+    var range = e.range;
+    var sheet = range.getSheet();
+    if (sheet.getName() === "Élèves" && range.getColumn() === 8 && range.getRow() > 1) {
+      var val = e.value;
+      if (val) {
+        var formatted = formatContactCI(val);
+        range.setNumberFormat("@");
+        if (formatted !== val) {
+          range.setValue(formatted);
+        }
+      }
+    }
+  } catch (err) {
+    // Ne bloque pas la saisie en cas d'erreur mineure
   }
 }

@@ -83,7 +83,7 @@ Si Python est installé sur la machine Windows :
 Pour créer un fichier `.exe` que l'on peut installer sans avoir besoin d'ouvrir de console :
 ```bash
 pip install pyinstaller
-pyinstaller --onefile --noconsole --name "ClubRobotique_Abobo" launcher.py
+pyinstaller --onefile --noconsole --name "ClubRobotique_Abobo" apps.py
 ```
 Le fichier `ClubRobotique_Abobo.exe` généré dans le sous-dossier `dist` peut être placé sur n'importe quel PC Windows !
 

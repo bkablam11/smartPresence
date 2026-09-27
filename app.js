@@ -9,51 +9,51 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiENiDA1uu4sbSV8dTH
 
 // 2. BASE DE DONNÉES DES 45 ÉLÈVES OFFICIELS DU CLUB ROBOTIQUE
 const INITIAL_STUDENTS = [
-  { id: "24428493-L", matricule: "24428493-L", nom: "ABOYA", prenom: "AYA DORIANE", sexe: "F", age: 14, classe: "5e 5", contact: "0757882699" },
-  { id: "23050709-K", matricule: "23050709-K", nom: "AMEA", prenom: "AKABLA ROSE DE LIMA", sexe: "F", age: 13, classe: "4e 7", contact: "0575422038 / 0585351354" },
-  { id: "25052363-F", matricule: "25052363-F", nom: "AMOUSSOU", prenom: "MIEMA MARIE JOEL", sexe: "F", age: 13, classe: "6e 6", contact: "0506135513" },
-  { id: "24034743-Z", matricule: "24034743-Z", nom: "BAMBA", prenom: "HABIBA LEILA", sexe: "F", age: 12, classe: "5e 7", contact: "0788476905" },
-  { id: "23636373-H", matricule: "23636373-H", nom: "BAYOU", prenom: "EMMANEULLA", sexe: "F", age: 13, classe: "4e 7", contact: "0504429815 / 0103350035" },
-  { id: "24051628-W", matricule: "24051628-W", nom: "CISSE", prenom: "BINTOU YASMINE", sexe: "F", age: 14, classe: "5e 6", contact: "0505164612" },
-  { id: "24051628-W-2", matricule: "24051628-W", nom: "CISSOKO", prenom: "BINTOU ZAHARA", sexe: "F", age: 12, classe: "5e 6", contact: "0504775373 / 0546058924" },
-  { id: "23789652-M", matricule: "23789652-M", nom: "COULIBALY", prenom: "LATIFA", sexe: "F", age: 14, classe: "4e 6", contact: "0505798594" },
-  { id: "25245204-K", matricule: "25245204-K", nom: "DIABY", prenom: "NABINTOU", sexe: "F", age: 14, classe: "5e 5", contact: "0546190182" },
-  { id: "23378292-S", matricule: "23378292-S", nom: "DIARRA", prenom: "KADIDJATOU", sexe: "F", age: 14, classe: "4e 6", contact: "0707550141" },
-  { id: "24078244-P", matricule: "24078244-P", nom: "DIARRASSOUBA", prenom: "ROKIA", sexe: "F", age: 12, classe: "5e 4", contact: "0505788491" },
-  { id: "24209827-V", matricule: "24209827-V", nom: "DIOMANDE", prenom: "MOHAMED", sexe: "M", age: 13, classe: "5e 7", contact: "0142807357" },
-  { id: "24252164-V", matricule: "24252164-V", nom: "GBOUKROU", prenom: "MARIE ANGE PRUNELLE", sexe: "F", age: 12, classe: "5e 7", contact: "0504840080" },
-  { id: "23378300-Q", matricule: "23378300-Q", nom: "GNAKOURI", prenom: "MARIE ESTHER", sexe: "F", age: 14, classe: "4e 4", contact: "0505496877" },
-  { id: "23663061-P", matricule: "23663061-P", nom: "GUEU", prenom: "DEBORA", sexe: "F", age: 14, classe: "4e 2", contact: "0584720934 / 0506515887" },
-  { id: "25281462-S", matricule: "25281462-S", nom: "KARAMOKO", prenom: "AMINATA SABOU", sexe: "F", age: 12, classe: "6e 6", contact: "0103080026" },
-  { id: "25286131-S", matricule: "25286131-S", nom: "KAZA", prenom: "ESTHER", sexe: "F", age: 12, classe: "6e 6", contact: "0748087657" },
-  { id: "24097437-E", matricule: "24097437-E", nom: "KOBENAN", prenom: "KOUASSI ABRAHAM", sexe: "M", age: 13, classe: "5e 7", contact: "0747043818" },
-  { id: "23050885-A", matricule: "23050885-A", nom: "KOFFI", prenom: "RUTH", sexe: "F", age: 14, classe: "4e 7", contact: "0101941057 / 0153858191" },
-  { id: "24185292-P", matricule: "24185292-P", nom: "KONE", prenom: "ISMAEL KHALIL", sexe: "M", age: 12, classe: "5e 7", contact: "0788643857" },
-  { id: "24102404-N", matricule: "24102404-N", nom: "KONE", prenom: "NELLY MALIKA", sexe: "F", age: 13, classe: "5e 6", contact: "0757957550" },
-  { id: "24228427-U", matricule: "24228427-U", nom: "KONE", prenom: "YAFOULO AMBRE", sexe: "F", age: 13, classe: "5e 6", contact: "0707296562" },
-  { id: "24436584-H", matricule: "24436584-H", nom: "KOUADIO", prenom: "AHOU ELIANE", sexe: "F", age: 14, classe: "5e 6", contact: "0708435112" },
-  { id: "24381686-T", matricule: "24381686-T", nom: "KOUADIO", prenom: "IRINA MARIE", sexe: "F", age: 14, classe: "5e 6", contact: "0708554681" },
-  { id: "24024345-L", matricule: "24024345-L", nom: "KOUADIO", prenom: "KOUAKOU CHRIST ASER", sexe: "M", age: 12, classe: "5e 7", contact: "0506307328" },
-  { id: "23382400-N", matricule: "23382400-N", nom: "KOUAKOU", prenom: "AHOU GNAMIEN SAH TABITHA", sexe: "F", age: 13, classe: "4e 3", contact: "0154685475" },
-  { id: "24097486-A", matricule: "24097486-A", nom: "KOUAKOU", prenom: "AHOUTOU MANUELA", sexe: "F", age: 13, classe: "5e 7", contact: "0747475101" },
-  { id: "24036113-E", matricule: "24036113-E", nom: "KOUAME", prenom: "KOFFI MICHEL LOIC", sexe: "M", age: 14, classe: "5e 7", contact: "0504838600" },
-  { id: "25126750-W", matricule: "25126750-W", nom: "KOUDOUGOU", prenom: "VANESSA", sexe: "F", age: 14, classe: "6e 6", contact: "0707607293 / 0708978637" },
-  { id: "22417315-U", matricule: "22417315-U", nom: "KOUE ZRANSSEU", prenom: "ANGE JERIELLE", sexe: "F", age: 14, classe: "4e 7", contact: "0768435628" },
-  { id: "24024467-U", matricule: "24024467-U", nom: "N'GUETTIA", prenom: "ADJA KOUMAN EPIPHANIE", sexe: "F", age: 13, classe: "5e 7", contact: "0707264677" },
-  { id: "24478985-P", matricule: "24478985-P", nom: "OBOUMOU BEDE", prenom: "MARIE GRACE", sexe: "F", age: 12, classe: "5e 7", contact: "0555128732" },
-  { id: "24335028-R", matricule: "24335028-R", nom: "OUATTARA", prenom: "MARIAM", sexe: "F", age: 13, classe: "5e 7", contact: "0556272558" },
-  { id: "24209670-D", matricule: "24209670-D", nom: "SANOGO", prenom: "MOHAMED AMINE", sexe: "M", age: 13, classe: "5e 7", contact: "0103730704" },
-  { id: "24040995-Y", matricule: "24040995-Y", nom: "SAWADOGO", prenom: "SAIDOU", sexe: "M", age: 12, classe: "5e 7", contact: "0564996918" },
-  { id: "24503832-H", matricule: "24503832-H", nom: "SIDIBE", prenom: "FATOUMA LEILA ESTHER", sexe: "F", age: 12, classe: "6e 6", contact: "0768214435" },
-  { id: "24209677-E", matricule: "24209677-E", nom: "SORO", prenom: "NAGNINMAN SAMIRA", sexe: "F", age: 12, classe: "5e 7", contact: "0702672054" },
-  { id: "24072274-P", matricule: "24072274-P", nom: "SYLLA", prenom: "ALASSANE", sexe: "M", age: 14, classe: "5e 7", contact: "0505191060" },
-  { id: "24409540-X", matricule: "24409540-X", nom: "SYLLA", prenom: "SOULEYMANE", sexe: "M", age: 12, classe: "5e 7", contact: "0716654877" },
-  { id: "24177259-D", matricule: "24177259-D", nom: "TAPE", prenom: "MOHAMED ADEM", sexe: "M", age: 14, classe: "5e 7", contact: "0709549303" },
-  { id: "24128913-Y", matricule: "24128913-Y", nom: "YORO", prenom: "WILFRIED KEVIN", sexe: "M", age: 13, classe: "5e 7", contact: "0713753676" },
-  { id: "24472856-C", matricule: "24472856-C", nom: "ZOUZOU", prenom: "JULES CHRIST EZECHIEL", sexe: "M", age: 13, classe: "5e 7", contact: "0701046467" },
-  { id: "23441920-K", matricule: "23441920-K", nom: "TRAORE", prenom: "ABOUBACAR", sexe: "M", age: 14, classe: "4e 6", contact: "0777123456" },
-  { id: "24551290-R", matricule: "24551290-R", nom: "BLE", prenom: "JOSUE", sexe: "M", age: 13, classe: "5e 7", contact: "0505889911" },
-  { id: "25667812-P", matricule: "25667812-P", nom: "TOURE", prenom: "FATOUMATA", sexe: "F", age: 12, classe: "6e 6", contact: "0708990022" }
+  { id: "24428493-L", matricule: "24428493-L", nom: "ABOYA", prenom: "AYA DORIANE", sexe: "F", anneeNaissance: 2012, age: 14, classe: "5e 5", contact: "0757882699" },
+  { id: "23050709-K", matricule: "23050709-K", nom: "AMEA", prenom: "AKABLA ROSE DE LIMA", sexe: "F", anneeNaissance: 2013, age: 13, classe: "4e 7", contact: "0575422038 / 0585351354" },
+  { id: "25052363-F", matricule: "25052363-F", nom: "AMOUSSOU", prenom: "MIEMA MARIE JOEL", sexe: "F", anneeNaissance: 2013, age: 13, classe: "6e 6", contact: "0506135513" },
+  { id: "24034743-Z", matricule: "24034743-Z", nom: "BAMBA", prenom: "HABIBA LEILA", sexe: "F", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0788476905" },
+  { id: "23636373-H", matricule: "23636373-H", nom: "BAYOU", prenom: "EMMANEULLA", sexe: "F", anneeNaissance: 2013, age: 13, classe: "4e 7", contact: "0504429815 / 0103350035" },
+  { id: "24051628-W", matricule: "24051628-W", nom: "CISSE", prenom: "BINTOU YASMINE", sexe: "F", anneeNaissance: 2012, age: 14, classe: "5e 6", contact: "0505164612" },
+  { id: "24051628-W-2", matricule: "24051628-W", nom: "CISSOKO", prenom: "BINTOU ZAHARA", sexe: "F", anneeNaissance: 2014, age: 12, classe: "5e 6", contact: "0504775373 / 0546058924" },
+  { id: "23789652-M", matricule: "23789652-M", nom: "COULIBALY", prenom: "LATIFA", sexe: "F", anneeNaissance: 2012, age: 14, classe: "4e 6", contact: "0505798594" },
+  { id: "25245204-K", matricule: "25245204-K", nom: "DIABY", prenom: "NABINTOU", sexe: "F", anneeNaissance: 2012, age: 14, classe: "5e 5", contact: "0546190182" },
+  { id: "23378292-S", matricule: "23378292-S", nom: "DIARRA", prenom: "KADIDJATOU", sexe: "F", anneeNaissance: 2012, age: 14, classe: "4e 6", contact: "0707550141" },
+  { id: "24078244-P", matricule: "24078244-P", nom: "DIARRASSOUBA", prenom: "ROKIA", sexe: "F", anneeNaissance: 2014, age: 12, classe: "5e 4", contact: "0505788491" },
+  { id: "24209827-V", matricule: "24209827-V", nom: "DIOMANDE", prenom: "MOHAMED", sexe: "M", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0142807357" },
+  { id: "24252164-V", matricule: "24252164-V", nom: "GBOUKROU", prenom: "MARIE ANGE PRUNELLE", sexe: "F", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0504840080" },
+  { id: "23378300-Q", matricule: "23378300-Q", nom: "GNAKOURI", prenom: "MARIE ESTHER", sexe: "F", anneeNaissance: 2012, age: 14, classe: "4e 4", contact: "0505496877" },
+  { id: "23663061-P", matricule: "23663061-P", nom: "GUEU", prenom: "DEBORA", sexe: "F", anneeNaissance: 2012, age: 14, classe: "4e 2", contact: "0584720934 / 0506515887" },
+  { id: "25281462-S", matricule: "25281462-S", nom: "KARAMOKO", prenom: "AMINATA SABOU", sexe: "F", anneeNaissance: 2014, age: 12, classe: "6e 6", contact: "0103080026" },
+  { id: "25286131-S", matricule: "25286131-S", nom: "KAZA", prenom: "ESTHER", sexe: "F", anneeNaissance: 2014, age: 12, classe: "6e 6", contact: "0748087657" },
+  { id: "24097437-E", matricule: "24097437-E", nom: "KOBENAN", prenom: "KOUASSI ABRAHAM", sexe: "M", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0747043818" },
+  { id: "23050885-A", matricule: "23050885-A", nom: "KOFFI", prenom: "RUTH", sexe: "F", anneeNaissance: 2012, age: 14, classe: "4e 7", contact: "0101941057 / 0153858191" },
+  { id: "24185292-P", matricule: "24185292-P", nom: "KONE", prenom: "ISMAEL KHALIL", sexe: "M", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0788643857" },
+  { id: "24102404-N", matricule: "24102404-N", nom: "KONE", prenom: "NELLY MALIKA", sexe: "F", anneeNaissance: 2013, age: 13, classe: "5e 6", contact: "0757957550" },
+  { id: "24228427-U", matricule: "24228427-U", nom: "KONE", prenom: "YAFOULO AMBRE", sexe: "F", anneeNaissance: 2013, age: 13, classe: "5e 6", contact: "0707296562" },
+  { id: "24436584-H", matricule: "24436584-H", nom: "KOUADIO", prenom: "AHOU ELIANE", sexe: "F", anneeNaissance: 2012, age: 14, classe: "5e 6", contact: "0708435112" },
+  { id: "24381686-T", matricule: "24381686-T", nom: "KOUADIO", prenom: "IRINA MARIE", sexe: "F", anneeNaissance: 2012, age: 14, classe: "5e 6", contact: "0708554681" },
+  { id: "24024345-L", matricule: "24024345-L", nom: "KOUADIO", prenom: "KOUAKOU CHRIST ASER", sexe: "M", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0506307328" },
+  { id: "23382400-N", matricule: "23382400-N", nom: "KOUAKOU", prenom: "AHOU GNAMIEN SAH TABITHA", sexe: "F", anneeNaissance: 2013, age: 13, classe: "4e 3", contact: "0154685475" },
+  { id: "24097486-A", matricule: "24097486-A", nom: "KOUAKOU", prenom: "AHOUTOU MANUELA", sexe: "F", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0747475101" },
+  { id: "24036113-E", matricule: "24036113-E", nom: "KOUAME", prenom: "KOFFI MICHEL LOIC", sexe: "M", anneeNaissance: 2012, age: 14, classe: "5e 7", contact: "0504838600" },
+  { id: "25126750-W", matricule: "25126750-W", nom: "KOUDOUGOU", prenom: "VANESSA", sexe: "F", anneeNaissance: 2012, age: 14, classe: "6e 6", contact: "0707607293 / 0708978637" },
+  { id: "22417315-U", matricule: "22417315-U", nom: "KOUE ZRANSSEU", prenom: "ANGE JERIELLE", sexe: "F", anneeNaissance: 2012, age: 14, classe: "4e 7", contact: "0768435628" },
+  { id: "24024467-U", matricule: "24024467-U", nom: "N'GUETTIA", prenom: "ADJA KOUMAN EPIPHANIE", sexe: "F", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0707264677" },
+  { id: "24478985-P", matricule: "24478985-P", nom: "OBOUMOU BEDE", prenom: "MARIE GRACE", sexe: "F", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0555128732" },
+  { id: "24335028-R", matricule: "24335028-R", nom: "OUATTARA", prenom: "MARIAM", sexe: "F", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0556272558" },
+  { id: "24209670-D", matricule: "24209670-D", nom: "SANOGO", prenom: "MOHAMED AMINE", sexe: "M", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0103730704" },
+  { id: "24040995-Y", matricule: "24040995-Y", nom: "SAWADOGO", prenom: "SAIDOU", sexe: "M", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0564996918" },
+  { id: "24503832-H", matricule: "24503832-H", nom: "SIDIBE", prenom: "FATOUMA LEILA ESTHER", sexe: "F", anneeNaissance: 2014, age: 12, classe: "6e 6", contact: "0768214435" },
+  { id: "24209677-E", matricule: "24209677-E", nom: "SORO", prenom: "NAGNINMAN SAMIRA", sexe: "F", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0702672054" },
+  { id: "24072274-P", matricule: "24072274-P", nom: "SYLLA", prenom: "ALASSANE", sexe: "M", anneeNaissance: 2012, age: 14, classe: "5e 7", contact: "0505191060" },
+  { id: "24409540-X", matricule: "24409540-X", nom: "SYLLA", prenom: "SOULEYMANE", sexe: "M", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0716654877" },
+  { id: "24177259-D", matricule: "24177259-D", nom: "TAPE", prenom: "MOHAMED ADEM", sexe: "M", anneeNaissance: 2012, age: 14, classe: "5e 7", contact: "0709549303" },
+  { id: "24128913-Y", matricule: "24128913-Y", nom: "YORO", prenom: "WILFRIED KEVIN", sexe: "M", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0713753676" },
+  { id: "24472856-C", matricule: "24472856-C", nom: "ZOUZOU", prenom: "JULES CHRIST EZECHIEL", sexe: "M", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0701046467" },
+  { id: "23441920-K", matricule: "23441920-K", nom: "TRAORE", prenom: "ABOUBACAR", sexe: "M", anneeNaissance: 2012, age: 14, classe: "4e 6", contact: "0777123456" },
+  { id: "24551290-R", matricule: "24551290-R", nom: "BLE", prenom: "JOSUE", sexe: "M", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0505889911" },
+  { id: "25667812-P", matricule: "25667812-P", nom: "TOURE", prenom: "FATOUMATA", sexe: "F", anneeNaissance: 2014, age: 12, classe: "6e 6", contact: "0708990022" }
 ];
 
 // 3. ÉTAT DE L'APPLICATION
@@ -71,13 +71,97 @@ function getTodayDateString() {
   return localToday.toISOString().split('T')[0];
 }
 
-// Tri alphabétique des élèves par Nom puis Prénom
+// Année courante dynamique (ex: 2026)
+function getCurrentYear() {
+  return new Date().getFullYear();
+}
+
+// Récupère l'année de naissance de manière fiable
+function getBirthYear(student) {
+  if (!student) return null;
+  const curYear = getCurrentYear();
+  if (student.anneeNaissance) {
+    const y = parseInt(student.anneeNaissance, 10);
+    if (!isNaN(y) && y > 1900) return y;
+  }
+  if (student.age) {
+    const a = parseInt(student.age, 10);
+    if (!isNaN(a)) {
+      if (a > 1900) return a;
+      return curYear - a;
+    }
+  }
+  return null;
+}
+
+// Calcule l'âge dynamique en fonction de l'année en cours
+function calculateAge(student) {
+  if (!student) return null;
+  const curYear = getCurrentYear();
+  const bYear = getBirthYear(student);
+  if (bYear) return curYear - bYear;
+  if (student.age) {
+    const a = parseInt(student.age, 10);
+    if (!isNaN(a) && a > 0 && a <= 100) return a;
+  }
+  return null;
+}
+
+// Normalisation et formatage des numéros de téléphone en Côte d'Ivoire (10 chiffres)
+// Restaure automatiquement le "0" initial si Google Sheets l'a tronqué en nombre
+function formatContact(val) {
+  if (!val && val !== 0) return '';
+  const str = String(val).trim();
+  if (!str) return '';
+
+  if (str.includes('/')) {
+    return str.split('/').map(p => formatSinglePhone(p.trim())).filter(Boolean).join(' / ');
+  }
+  return formatSinglePhone(str);
+}
+
+function formatSinglePhone(phone) {
+  if (!phone) return '';
+  const digits = phone.replace(/\D/g, '');
+  
+  // Numéro à 9 chiffres où le zéro initial a été supprimé (ex: 757882699 -> 0757882699, 506135513 -> 0506135513)
+  if (digits.length === 9 && ['1', '5', '7', '2'].includes(digits[0])) {
+    return '0' + digits;
+  }
+  
+  // Numéro standard à 10 chiffres commençant par 0
+  if (digits.length === 10 && digits.startsWith('0')) {
+    return digits;
+  }
+  
+  // Numéro avec indicatif 225 (+22507... ou 22507...)
+  if (digits.startsWith('225') && digits.length === 13) {
+    return '+' + digits;
+  }
+
+  return phone;
+}
+
+// Tri alphabétique des élèves par Nom puis Prénom et normalisation des contacts & âges dynamiques
 function sortStudents(list) {
-  return [...list].sort((a, b) => {
-    const nameA = `${a.nom} ${a.prenom}`.toUpperCase();
-    const nameB = `${b.nom} ${b.prenom}`.toUpperCase();
-    return nameA.localeCompare(nameB, 'fr');
-  });
+  const curYear = getCurrentYear();
+  return [...list]
+    .filter(Boolean)
+    .map(s => {
+      const bYear = getBirthYear(s);
+      const calcAge = bYear ? (curYear - bYear) : (s.age || '');
+      return {
+        ...s,
+        anneeNaissance: bYear || s.anneeNaissance || '',
+        age: calcAge || '',
+        contact: formatContact(s.contact)
+      };
+    })
+    .sort((a, b) => {
+      const nameA = `${a.nom} ${a.prenom}`.toUpperCase();
+      const nameB = `${b.nom} ${b.prenom}`.toUpperCase();
+      return nameA.localeCompare(nameB, 'fr');
+    });
 }
 
 // 4. INITIALISATION ET PERSISTANCE LOCALE
@@ -332,30 +416,121 @@ window.toggleAttendance = function(studentId) {
 
 window.checkAllPresent = function() {
   if (!allAttendance[selectedDate]) allAttendance[selectedDate] = {};
-  students.forEach(s => {
+  const targetList = getFilteredStudents();
+  targetList.forEach(s => {
     const sid = s.id || s.matricule;
     allAttendance[selectedDate][sid] = true;
   });
   saveAttendanceLocally();
-  showToast('Tous les élèves ont été marqués présents.');
+  const isFiltered = targetList.length !== students.length;
+  showToast(isFiltered ? `${targetList.length} élève(s) marqué(s) présent(s).` : 'Tous les élèves ont été marqués présents.');
 };
 
 window.uncheckAll = function() {
   if (!allAttendance[selectedDate]) allAttendance[selectedDate] = {};
-  students.forEach(s => {
+  const targetList = getFilteredStudents();
+  targetList.forEach(s => {
     const sid = s.id || s.matricule;
     allAttendance[selectedDate][sid] = false;
   });
   saveAttendanceLocally();
-  showToast('Toutes les présences ont été retirées.');
+  const isFiltered = targetList.length !== students.length;
+  showToast(isFiltered ? `Présences retirées pour ${targetList.length} élève(s).` : 'Toutes les présences ont été retirées.');
 };
 
 // 7. INTERFACE ET STATISTIQUES
 function updateUI() {
+  populateAgeFilter();
   renderStats();
   renderStudentList();
   renderSyncInfo();
 }
+
+// Génère dynamiquement les options du filtre par âge selon les élèves inscrits
+function populateAgeFilter() {
+  const ageSelect = document.getElementById('filterAge');
+  if (!ageSelect) return;
+
+  const currentSelected = ageSelect.value;
+
+  const ageCounts = {};
+  students.forEach(s => {
+    const age = calculateAge(s);
+    if (age !== null && age > 0) {
+      ageCounts[age] = (ageCounts[age] || 0) + 1;
+    }
+  });
+
+  const uniqueAges = Object.keys(ageCounts).map(Number).sort((a, b) => a - b);
+
+  let html = '<option value="">🎂 Tous les âges</option>';
+  uniqueAges.forEach(age => {
+    const count = ageCounts[age];
+    html += `<option value="${age}">${age} ans (${count})</option>`;
+  });
+
+  ageSelect.innerHTML = html;
+
+  if (currentSelected && uniqueAges.includes(parseInt(currentSelected, 10))) {
+    ageSelect.value = currentSelected;
+  }
+}
+
+// Fonction de filtrage partagée
+function getFilteredStudents() {
+  const searchInput = document.getElementById('searchInput');
+  const genderFilter = document.getElementById('filterGender');
+  const ageFilter = document.getElementById('filterAge');
+
+  const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  const selectedGender = genderFilter ? genderFilter.value.trim().toUpperCase() : '';
+  const selectedAge = ageFilter ? ageFilter.value.trim() : '';
+
+  return students.filter(s => {
+    if (!s) return false;
+    const fullName = `${s.nom || ''} ${s.prenom || ''}`.toLowerCase();
+    const matricule = String(s.matricule || s.id || '').toLowerCase();
+
+    // Filtre texte
+    const matchesSearch = !searchTerm || fullName.includes(searchTerm) || matricule.includes(searchTerm);
+
+    // Filtre par genre (Fille / Garçon)
+    let matchesGender = true;
+    if (selectedGender) {
+      const sSexe = String(s.sexe || '').trim().toUpperCase();
+      const normSexe = (sSexe === 'M' || sSexe === 'GARÇON' || sSexe === 'GARCON') ? 'M' : 'F';
+      matchesGender = (normSexe === selectedGender);
+    }
+
+    // Filtre par âge dynamique
+    let matchesAge = true;
+    if (selectedAge) {
+      const ageCalc = calculateAge(s);
+      matchesAge = (ageCalc !== null && String(ageCalc) === String(selectedAge));
+    }
+
+    return matchesSearch && matchesGender && matchesAge;
+  });
+}
+
+window.clearSearch = function() {
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.value = '';
+    searchInput.focus();
+  }
+  renderStudentList();
+};
+
+window.resetFilters = function() {
+  const searchInput = document.getElementById('searchInput');
+  const genderFilter = document.getElementById('filterGender');
+  const ageFilter = document.getElementById('filterAge');
+  if (searchInput) searchInput.value = '';
+  if (genderFilter) genderFilter.value = '';
+  if (ageFilter) ageFilter.value = '';
+  renderStudentList();
+};
 
 function renderStats() {
   const currentAttendance = allAttendance[selectedDate] || {};
@@ -383,30 +558,45 @@ function renderStudentList() {
   if (!container) return;
 
   const searchInput = document.getElementById('searchInput');
-  const classFilter = document.getElementById('filterClass');
+  const genderFilter = document.getElementById('filterGender');
+  const ageFilter = document.getElementById('filterAge');
+  const countDisplay = document.getElementById('filterCountDisplay');
+  const btnReset = document.getElementById('btnResetFilters');
+  const clearSearchBtn = document.getElementById('clearSearchBtn');
 
   const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
-  const selectedClass = classFilter ? classFilter.value.trim().toLowerCase() : '';
+  const selectedGender = genderFilter ? genderFilter.value.trim().toUpperCase() : '';
+  const selectedAge = ageFilter ? ageFilter.value.trim() : '';
+
+  if (clearSearchBtn) {
+    if (searchTerm) clearSearchBtn.classList.remove('hidden');
+    else clearSearchBtn.classList.add('hidden');
+  }
+
+  const isFiltered = !!(searchTerm || selectedGender || selectedAge);
+  if (btnReset) {
+    if (isFiltered) btnReset.classList.remove('hidden');
+    else btnReset.classList.add('hidden');
+  }
+
+  const filtered = getFilteredStudents();
+
+  if (countDisplay) {
+    if (isFiltered) {
+      countDisplay.innerHTML = `<strong>${filtered.length}</strong> élève${filtered.length > 1 ? 's' : ''} affiché${filtered.length > 1 ? 's' : ''} sur ${students.length}`;
+    } else {
+      countDisplay.textContent = `${students.length} élèves inscrits`;
+    }
+  }
 
   const currentAttendance = allAttendance[selectedDate] || {};
-
-  const filtered = students.filter(s => {
-    if (!s) return false;
-    const fullName = `${s.nom || ''} ${s.prenom || ''}`.toLowerCase();
-    const matricule = String(s.matricule || s.id || '').toLowerCase();
-    const classe = String(s.classe || '').toLowerCase();
-
-    const matchesSearch = !searchTerm || fullName.includes(searchTerm) || matricule.includes(searchTerm);
-    const matchesClass = !selectedClass || selectedClass === 'all' || classe === selectedClass;
-
-    return matchesSearch && matchesClass;
-  });
 
   if (filtered.length === 0) {
     container.innerHTML = `
       <div style="text-align: center; padding: 3rem; color: #94a3b8;">
         <span style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;">🔍</span>
-        <p style="font-weight: 600;">Aucun élève trouvé pour cette recherche.</p>
+        <p style="font-weight: 600;">Aucun élève trouvé pour ces critères de filtre.</p>
+        <button class="btn-secondary" style="margin-top: 10px; cursor: pointer;" onclick="resetFilters()">↺ Réinitialiser les filtres</button>
       </div>
     `;
     return;
@@ -416,6 +606,8 @@ function renderStudentList() {
     const studentId = s.id || s.matricule;
     const isPresent = !!(currentAttendance[studentId] || (s.matricule && currentAttendance[s.matricule]));
     const initial = (s.nom && s.nom.trim().length > 0) ? s.nom.trim()[0].toUpperCase() : 'E';
+    const ageCalculated = calculateAge(s);
+    const birthYear = getBirthYear(s);
     return `
       <div class="student-row ${isPresent ? 'is-present' : ''}" data-id="${escapeHtml(studentId)}">
         <div class="student-left">
@@ -432,7 +624,8 @@ function renderStudentList() {
             <div class="student-name">${escapeHtml(s.nom)} ${escapeHtml(s.prenom)}</div>
             <div class="student-meta">
               <span class="badge-classe">${escapeHtml(s.classe)}</span>
-              <span>${s.sexe === 'F' ? 'Fille' : 'Garçon'}</span>
+              <span>${s.sexe === 'F' ? '👧 Fille' : '👦 Garçon'}</span>
+              ${ageCalculated ? `<span class="badge-age" title="${birthYear ? `Né(e) en ${birthYear}` : ''}">🎂 ${ageCalculated} ans ${birthYear ? `<span style="font-weight: normal; opacity: 0.85;">(${birthYear})</span>` : ''}</span>` : ''}
               ${s.matricule ? `<span style="font-family: monospace;">Mat: ${escapeHtml(s.matricule)}</span>` : ''}
               ${s.contact ? `<span>📞 ${escapeHtml(s.contact)}</span>` : ''}
             </div>
@@ -450,7 +643,33 @@ function renderStudentList() {
 // 8. GESTION DES ÉLÈVES (AJOUT / MODIFICATION / SUPPRESSION)
 function setupEventListeners() {
   document.getElementById('searchInput')?.addEventListener('input', renderStudentList);
-  document.getElementById('filterClass')?.addEventListener('change', renderStudentList);
+  document.getElementById('filterGender')?.addEventListener('change', renderStudentList);
+  document.getElementById('filterAge')?.addEventListener('change', renderStudentList);
+
+  const updateAgePreview = (inputEl, previewEl) => {
+    if (!inputEl || !previewEl) return;
+    const val = parseInt(inputEl.value.trim(), 10);
+    const curYear = getCurrentYear();
+    if (isNaN(val) || val <= 0) {
+      previewEl.textContent = '';
+      return;
+    }
+    if (val > 1900 && val <= curYear) {
+      previewEl.textContent = `→ ${curYear - val} ans en ${curYear}`;
+    } else if (val > 0 && val <= 100) {
+      previewEl.textContent = `→ Né(e) en ${curYear - val} (${val} ans en ${curYear})`;
+    } else {
+      previewEl.textContent = '';
+    }
+  };
+
+  const newYearInput = document.getElementById('newAnneeNaissance');
+  const newYearPreview = document.getElementById('newAgePreview');
+  newYearInput?.addEventListener('input', () => updateAgePreview(newYearInput, newYearPreview));
+
+  const editYearInput = document.getElementById('editAnneeNaissance');
+  const editYearPreview = document.getElementById('editAgePreview');
+  editYearInput?.addEventListener('input', () => updateAgePreview(editYearInput, editYearPreview));
 
   const addForm = document.getElementById('addStudentForm');
   if (addForm) {
@@ -461,12 +680,28 @@ function setupEventListeners() {
       const classe = document.getElementById('newClasse').value;
       const sexe = document.getElementById('newSexe').value;
       const matricule = document.getElementById('newMatricule').value.trim();
-      const ageVal = document.getElementById('newAge').value;
+      const rawYearOrAge = document.getElementById('newAnneeNaissance')?.value.trim();
       const contact = document.getElementById('newContact').value.trim();
 
       if (!nom || !prenom || !classe) {
         alert('Veuillez remplir au moins le nom, le prénom et la classe.');
         return;
+      }
+
+      const curYear = getCurrentYear();
+      let anneeNaissance = undefined;
+      let age = undefined;
+      if (rawYearOrAge) {
+        const num = parseInt(rawYearOrAge, 10);
+        if (!isNaN(num)) {
+          if (num > 1900) {
+            anneeNaissance = num;
+            age = curYear - num;
+          } else if (num > 0 && num <= 100) {
+            anneeNaissance = curYear - num;
+            age = num;
+          }
+        }
       }
 
       const newStudent = {
@@ -476,14 +711,17 @@ function setupEventListeners() {
         prenom: prenom,
         classe: classe,
         sexe: sexe,
-        age: ageVal ? parseInt(ageVal, 10) : undefined,
-        contact: contact
+        anneeNaissance: anneeNaissance,
+        age: age,
+        contact: formatContact(contact)
       };
 
       students.push(newStudent);
+      students = sortStudents(students);
       saveStudentsLocally();
       updateUI();
       addForm.reset();
+      if (newYearPreview) newYearPreview.textContent = '';
       showToast(`Élève ${nom} ${prenom} ajouté.`);
     });
   }
@@ -496,15 +734,33 @@ function setupEventListeners() {
 
       const idx = students.findIndex(s => s.id === editingStudentId);
       if (idx !== -1) {
+        const curYear = getCurrentYear();
+        const rawYearOrAge = document.getElementById('editAnneeNaissance')?.value.trim();
+        let anneeNaissance = undefined;
+        let age = undefined;
+        if (rawYearOrAge) {
+          const num = parseInt(rawYearOrAge, 10);
+          if (!isNaN(num)) {
+            if (num > 1900) {
+              anneeNaissance = num;
+              age = curYear - num;
+            } else if (num > 0 && num <= 100) {
+              anneeNaissance = curYear - num;
+              age = num;
+            }
+          }
+        }
+
         students[idx].nom = document.getElementById('editNom').value.trim().toUpperCase();
         students[idx].prenom = document.getElementById('editPrenom').value.trim();
         students[idx].classe = document.getElementById('editClasse').value;
         students[idx].sexe = document.getElementById('editSexe').value;
         students[idx].matricule = document.getElementById('editMatricule').value.trim();
-        const ageVal = document.getElementById('editAge').value;
-        students[idx].age = ageVal ? parseInt(ageVal, 10) : undefined;
-        students[idx].contact = document.getElementById('editContact').value.trim();
+        students[idx].anneeNaissance = anneeNaissance;
+        students[idx].age = age;
+        students[idx].contact = formatContact(document.getElementById('editContact').value.trim());
 
+        students = sortStudents(students);
         saveStudentsLocally();
         closeEditModal();
         updateUI();
@@ -524,9 +780,22 @@ window.openEditModal = function(id) {
   document.getElementById('editClasse').value = student.classe || '6e 6';
   document.getElementById('editSexe').value = student.sexe || 'F';
   document.getElementById('editMatricule').value = student.matricule || '';
-  document.getElementById('editAge').value = student.age || '';
-  document.getElementById('editContact').value = student.contact || '';
+  
+  const curYear = getCurrentYear();
+  const bYear = student.anneeNaissance || (student.age && student.age <= 100 ? (curYear - student.age) : student.age);
+  const editYearInput = document.getElementById('editAnneeNaissance');
+  const editYearPreview = document.getElementById('editAgePreview');
+  if (editYearInput) {
+    editYearInput.value = bYear || '';
+    if (bYear && editYearPreview) {
+      const a = curYear - bYear;
+      editYearPreview.textContent = `→ ${a} ans en ${curYear}`;
+    } else if (editYearPreview) {
+      editYearPreview.textContent = '';
+    }
+  }
 
+  document.getElementById('editContact').value = formatContact(student.contact || '');
   document.getElementById('editModal').classList.remove('hidden');
 };
 
@@ -653,19 +922,23 @@ window.downloadAttendancePDF = async function() {
   doc.text(`Séance d'activité du : ${selectedDate} • Présents : ${presents.length} / ${students.length}`, 105, 65, { align: 'center' });
 
   // Tableau
-  const tableData = presents.map((s, index) => [
-    index + 1,
-    s.matricule || '-',
-    `${s.nom} ${s.prenom}`,
-    s.classe,
-    s.sexe === 'F' ? 'F' : 'M',
-    s.contact || '-',
-    'PRÉSENT'
-  ]);
+  const tableData = presents.map((s, index) => {
+    const ageCalc = calculateAge(s);
+    return [
+      index + 1,
+      s.matricule || '-',
+      `${s.nom} ${s.prenom}`,
+      s.classe,
+      s.sexe === 'F' ? 'F' : 'M',
+      ageCalc ? `${ageCalc} ans` : '-',
+      s.contact || '-',
+      'PRÉSENT'
+    ];
+  });
 
   doc.autoTable({
     startY: 72,
-    head: [['N°', 'Matricule', 'Nom & Prénoms', 'Classe', 'Sexe', 'Contact', 'Émargement']],
+    head: [['N°', 'Matricule', 'Nom & Prénoms', 'Classe', 'Sexe', 'Âge', 'Contact', 'Émargement']],
     body: tableData,
     theme: 'grid',
     headStyles: {
@@ -679,13 +952,14 @@ window.downloadAttendancePDF = async function() {
       cellPadding: 2.5
     },
     columnStyles: {
-      0: { cellWidth: 10, halign: 'center' },
-      1: { cellWidth: 26 },
-      2: { cellWidth: 60 },
-      3: { cellWidth: 18, halign: 'center' },
-      4: { cellWidth: 14, halign: 'center' },
-      5: { cellWidth: 32 },
-      6: { cellWidth: 25, halign: 'center', fontStyle: 'bold', textColor: [5, 150, 105] }
+      0: { cellWidth: 8, halign: 'center' },
+      1: { cellWidth: 24 },
+      2: { cellWidth: 54 },
+      3: { cellWidth: 16, halign: 'center' },
+      4: { cellWidth: 12, halign: 'center' },
+      5: { cellWidth: 16, halign: 'center' },
+      6: { cellWidth: 32 },
+      7: { cellWidth: 26, halign: 'center', fontStyle: 'bold', textColor: [5, 150, 105] }
     }
   });
 

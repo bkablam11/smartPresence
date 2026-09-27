@@ -191,8 +191,9 @@
                 <input type="text" id="newMatricule" placeholder="25126750-W">
               </div>
               <div class="form-group">
-                <label for="newAge">Âge</label>
-                <input type="number" id="newAge" placeholder="13">
+                <label for="newAnneeNaissance">Année Naissance (ou Âge)</label>
+                <input type="number" id="newAnneeNaissance" placeholder="Ex: 2013 ou 13" min="10" max="2026">
+                <small id="newAgePreview" style="display: block; font-size: 0.72rem; color: #0d9488; margin-top: 2px; font-weight: 600; min-height: 1rem;"></small>
               </div>
             </div>
 
@@ -222,29 +223,40 @@
         
         <!-- BARRE DE RECHERCHE ET ACTIONS GLOBALES -->
         <div class="list-controls">
-          <div class="search-filter-box">
+          <!-- LIGNE 1 : RECHERCHE ET ACTIONS D'APPEL -->
+          <div class="controls-top-row">
             <div class="search-box">
+              <span class="search-icon">🔍</span>
               <input type="text" id="searchInput" placeholder="Rechercher par nom, prénom ou matricule...">
+              <button id="clearSearchBtn" class="clear-search-btn hidden" onclick="clearSearch()" title="Effacer la recherche">✕</button>
             </div>
-            <select id="filterClass" class="filter-select">
-              <option value="">Toutes les classes</option>
-              <option value="6e 6">6e 6</option>
-              <option value="5e 7">5e 7</option>
-              <option value="5e 6">5e 6</option>
-              <option value="5e 5">5e 5</option>
-              <option value="5e 4">5e 4</option>
-              <option value="4e 7">4e 7</option>
-              <option value="4e 6">4e 6</option>
-              <option value="4e 4">4e 4</option>
-              <option value="4e 3">4e 3</option>
-              <option value="4e 2">4e 2</option>
-              <option value="3e 1">3e 1</option>
-            </select>
+
+            <div class="quick-buttons">
+              <button class="btn-secondary btn-check" onclick="checkAllPresent()">✓ Tout cocher</button>
+              <button class="btn-secondary btn-uncheck" onclick="uncheckAll()">✕ Tout décocher</button>
+            </div>
           </div>
 
-          <div class="quick-buttons">
-            <button class="btn-secondary" onclick="checkAllPresent()">✓ Tout cocher</button>
-            <button class="btn-secondary" onclick="uncheckAll()">✕ Tout décocher</button>
+          <!-- LIGNE 2 : FILTRES PAR GENRE ET ÂGE -->
+          <div class="controls-filter-row">
+            <div class="filter-group">
+              <span class="filter-label">Filtres :</span>
+              <select id="filterGender" class="filter-select" title="Filtrer par genre">
+                <option value="">👥 Tous les genres</option>
+                <option value="F">👧 Filles (F)</option>
+                <option value="M">👦 Garçons (M)</option>
+              </select>
+              <select id="filterAge" class="filter-select" title="Filtrer par âge">
+                <option value="">🎂 Tous les âges</option>
+              </select>
+              <button id="btnResetFilters" class="btn-reset-filters hidden" onclick="resetFilters()" title="Réinitialiser les filtres">
+                ↺ Réinitialiser
+              </button>
+            </div>
+
+            <div class="filter-count" id="filterCountDisplay">
+              Chargement des élèves...
+            </div>
           </div>
         </div>
 
@@ -309,8 +321,9 @@
             <input type="text" id="editMatricule">
           </div>
           <div class="form-group">
-            <label for="editAge">Âge</label>
-            <input type="number" id="editAge">
+            <label for="editAnneeNaissance">Année Naissance (ou Âge)</label>
+            <input type="number" id="editAnneeNaissance" placeholder="Ex: 2013 ou 13">
+            <small id="editAgePreview" style="display: block; font-size: 0.72rem; color: #0d9488; margin-top: 2px; font-weight: 600; min-height: 1rem;"></small>
           </div>
         </div>
         <div class="form-group">
