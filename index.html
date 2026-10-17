@@ -29,19 +29,6 @@
     
     <!-- EN-TÊTE PRINCIPAL (CLUB À GAUCHE, LYCÉE À DROITE) -->
     <header class="app-header">
-      <!-- BANDEAU AUTO-UPDATE GITHUB -->
-<div id="updateBanner" class="update-banner hidden">
-  <div class="update-left">
-    <span>🚀</span>
-    <span>Une nouvelle version (<strong id="latestVersionTag">v2.2.0</strong>) est disponible !</span>
-  </div>
-  <div class="update-actions">
-    <button id="btnApplyUpdate" class="btn-update" onclick="launchAutoUpdate()">
-      Mettre à jour maintenant (1-Clic)
-    </button>
-    <button class="btn-close-banner" onclick="document.getElementById('updateBanner').classList.add('hidden')">✕</button>
-  </div>
-</div>
       <div class="header-content">
         <div class="brand-section">
           <div class="logos-wrapper">
@@ -75,6 +62,21 @@
         </div>
       </div>
     </header>
+
+    <!-- BANDEAU AUTO-UPDATE GITHUB (PLURIPOSTIONNÉ ICI HORS DU HEADER) -->
+    <div id="updateBanner" class="update-banner hidden">
+      <div class="update-left">
+        <span>🚀</span>
+        <span>Une nouvelle version (<strong id="latestVersionTag">v2.2.0</strong>) est disponible !</span>
+      </div>
+      <div class="update-actions">
+        <button id="btnApplyUpdate" class="btn-update" onclick="launchAutoUpdate()">
+          Mettre à jour maintenant (1-Clic)
+        </button>
+        <button class="btn-close-banner" onclick="document.getElementById('updateBanner').classList.add('hidden')">✕</button>
+      </div>
+    </div>
+
 
     <!-- BANDEAU DE RECONNEXION INTERNET -->
     <div id="reconnectBanner" class="reconnect-banner hidden">
