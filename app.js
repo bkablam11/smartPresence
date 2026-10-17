@@ -1291,3 +1291,44 @@ function showToast(message) {
 
 // Démarrage de l'application
 document.addEventListener('DOMContentLoaded', initApp);
+
+// Vérification automatique des mises à jour au démarrage
+async function checkForAppUpdates() {
+  if (!navigator.onLine) return; // Ne tente rien si hors-ligne
+
+  try {
+    const res = await fetch('/api/check-update');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    if (data.update_available) {
+      const banner = document.getElementById('updateBanner');
+      const tag = document.getElementById('latestVersionTag');
+      if (tag) tag.textContent = `v${data.latest_version}`;
+      if (banner) banner.classList.remove('hidden');
+    }
+  } catch (err) {
+    console.log("Vérification mise à jour ignorée (mode hors-ligne ou non supporté).");
+  }
+}
+
+// Déclenchement de la mise à jour en 1 clic
+async function launchAutoUpdate() {
+  const btn = document.getElementById('btnApplyUpdate');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "⏳ Téléchargement & Installation...";
+  }
+
+  try {
+    await fetch('/api/apply-update');
+    showToast("Installation en cours... L'application va redémarrer.");
+  } catch (err) {
+    alert("Erreur lors de la mise à jour. Relancez manuellement l'application.");
+  }
+}
+
+// Lancer la vérification 3 secondes après le chargement de la page
+window.addEventListener('load', () => {
+  setTimeout(checkForAppUpdates, 3000);
+});

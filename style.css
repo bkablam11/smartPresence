@@ -1100,3 +1100,48 @@ header.app-header {
   from { transform: translateY(10px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+
+/* BANDEAU AUTO-UPDATE */
+.update-banner {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  padding: 12px 18px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  animation: slideDown 0.3s ease;
+}
+
+.update-banner.hidden {
+  display: none;
+}
+
+.update-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.btn-update {
+  background: #ffffff;
+  color: #1d4ed8;
+  border: none;
+  padding: 7px 16px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: all 0.2s ease;
+}
+
+.btn-update:hover {
+  background: #f8fafc;
+  transform: translateY(-1px);
+}

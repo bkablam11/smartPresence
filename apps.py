@@ -11,6 +11,7 @@ import webbrowser
 import threading
 import os
 import sys
+import updater  # Importe notre module d'auto-update
 
 PORT = 8080
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -19,15 +20,41 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
-    # Désactive le cache navigateur pour voir les modifications en direct
     def end_headers(self):
+        # Désactive le cache navigateur
         self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
         self.send_header('Pragma', 'no-cache')
         self.send_header('Expires', '0')
         super().end_headers()
 
+    # Intercepte les requêtes de mise à jour venant de l'interface JS
+    def do_GET(self):
+        if self.path == '/api/check-update':
+            info = updater.get_latest_release_info()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(info).encode('utf-8'))
+            return
+
+        elif self.path.startswith('/api/apply-update'):
+            info = updater.get_latest_release_info()
+            if info.get("update_available") and info.get("download_url"):
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "starting"}).encode('utf-8'))
+                # Lance la mise à jour
+                updater.apply_update(info["download_url"])
+            else:
+                self.send_response(400)
+                self.end_headers()
+            return
+
+        # Fichiers HTML/CSS/JS normaux
+        return super().do_GET()
+
     def log_message(self, format, *args):
-        # Réduit les logs verbeux
         pass
 
 def start_server():
