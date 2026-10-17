@@ -145,7 +145,7 @@ function formatSinglePhone(phone) {
 // Tri alphabétique des élèves par Nom puis Prénom et normalisation des contacts & âges dynamiques
 function sortStudents(list) {
   const curYear = getCurrentYear();
-  return [...list]
+  const sorted = [...list]
     .filter(Boolean)
     .map(s => {
       const bYear = getBirthYear(s);
@@ -162,6 +162,68 @@ function sortStudents(list) {
       const nameB = `${b.nom} ${b.prenom}`.toUpperCase();
       return nameA.localeCompare(nameB, 'fr');
     });
+
+  const idCounts = new Map();
+  const usedIds = new Set();
+  return sorted.map((student, index) => {
+    const baseId = String(student.id || student.matricule || `ELEVE-${index + 1}`).trim();
+    let suffix = (idCounts.get(baseId) || 0) + 1;
+    let id = suffix === 1 ? baseId : `${baseId}-${suffix}`;
+    while (usedIds.has(id)) {
+      suffix += 1;
+      id = `${baseId}-${suffix}`;
+    }
+    idCounts.set(baseId, suffix);
+    usedIds.add(id);
+    return { ...student, id };
+  });
+}
+
+function mergeStudents(currentList, incomingList) {
+  const current = sortStudents(currentList);
+  const incoming = sortStudents(incomingList);
+  const matriculeCounts = list => list.reduce((counts, student) => {
+    const matricule = String(student.matricule || '').trim().toLowerCase();
+    if (matricule) counts.set(matricule, (counts.get(matricule) || 0) + 1);
+    return counts;
+  }, new Map());
+  const currentCounts = matriculeCounts(current);
+  const incomingCounts = matriculeCounts(incoming);
+  const identity = student => {
+    const matricule = String(student.matricule || '').trim().toLowerCase();
+    const name = `${student.nom || ''} ${student.prenom || ''}`
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+    if (!matricule) return `name:${name || String(student.id || '').toLowerCase()}`;
+    return `matricule:${matricule}|name:${name}`;
+  };
+  const merged = new Map(current.map(student => [identity(student), student]));
+  const uniqueCurrentByMatricule = new Map();
+  current.forEach(student => {
+    const matricule = String(student.matricule || '').trim().toLowerCase();
+    if (matricule && currentCounts.get(matricule) === 1) {
+      uniqueCurrentByMatricule.set(matricule, student);
+    }
+  });
+
+  incoming.forEach(student => {
+    const key = identity(student);
+    const matricule = String(student.matricule || '').trim().toLowerCase();
+    if (merged.has(key)) {
+      merged.set(key, student);
+    } else if (matricule && currentCounts.get(matricule) === 1 && incomingCounts.get(matricule) === 1) {
+      const previousStudent = uniqueCurrentByMatricule.get(matricule);
+      if (previousStudent) merged.delete(identity(previousStudent));
+      merged.set(key, student);
+      uniqueCurrentByMatricule.set(matricule, student);
+    } else {
+      merged.set(key, student);
+    }
+  });
+
+  return sortStudents(Array.from(merged.values()));
 }
 
 // 4. INITIALISATION ET PERSISTANCE LOCALE
@@ -174,13 +236,7 @@ function initApp() {
     if (storedStudents) {
       const parsed = JSON.parse(storedStudents);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        // Fusionne pour s'assurer que tous les élèves officiels sont là
-        const map = new Map();
-        INITIAL_STUDENTS.forEach(s => map.set(s.matricule || s.id, s));
-        parsed.forEach(s => {
-          if (s) map.set(s.matricule || s.id, s);
-        });
-        loadedList = Array.from(map.values());
+        loadedList = mergeStudents(INITIAL_STUDENTS, parsed);
       }
     }
 
@@ -292,16 +348,7 @@ window.fetchFromGoogleSheet = async function(silent = false) {
 
       // 1. Mise à jour des élèves s'ils existent dans la feuille
       if (Array.isArray(data.students) && data.students.length > 0) {
-        const studentMap = new Map();
-        // Garde la liste locale de base
-        students.forEach(s => studentMap.set(s.matricule || s.id, s));
-        // Remplace / met à jour avec les élèves de la feuille Google Sheets
-        data.students.forEach(s => {
-          if (s && (s.matricule || s.nom)) {
-            studentMap.set(s.matricule || s.id, s);
-          }
-        });
-        students = sortStudents(Array.from(studentMap.values()));
+        students = mergeStudents(students, data.students);
         saveStudentsLocally();
         updatedCount = data.students.length;
       }
@@ -645,6 +692,14 @@ function setupEventListeners() {
   document.getElementById('searchInput')?.addEventListener('input', renderStudentList);
   document.getElementById('filterGender')?.addEventListener('change', renderStudentList);
   document.getElementById('filterAge')?.addEventListener('change', renderStudentList);
+  document.getElementById('btnOpenScanner')?.addEventListener('click', startScanner);
+  document.getElementById('btnCloseScanner')?.addEventListener('click', stopScanner);
+  document.getElementById('qrModal')?.addEventListener('click', (event) => {
+    if (event.target === event.currentTarget) stopScanner();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') stopScanner();
+  });
 
   const updateAgePreview = (inputEl, previewEl) => {
     if (!inputEl || !previewEl) return;
@@ -978,6 +1033,234 @@ window.downloadAttendancePDF = async function() {
   doc.save(`presence_club_robotique_${selectedDate}.pdf`);
   showToast('Fiche PDF générée et téléchargée.');
 };
+
+window.downloadStudentQRCodesPDF = async function() {
+  if (students.length === 0) {
+    alert("Aucun élève n'est inscrit : impossible de générer les badges.");
+    return;
+  }
+  if (!window.jspdf?.jsPDF || typeof window.QRCode !== 'function') {
+    alert("Les bibliothèques PDF ou QR ne sont pas disponibles. Vérifiez que les fichiers de l'application sont présents.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const columns = 2;
+  const rows = 3;
+  const cardWidth = 94;
+  const cardHeight = 88;
+  const gapX = 4;
+  const gapY = 4;
+  const marginX = 9;
+  const marginY = 10;
+  const qrSize = 46;
+
+  try {
+    for (let index = 0; index < students.length; index += 1) {
+      const student = students[index];
+      const indexOnPage = index % (columns * rows);
+      if (index > 0 && indexOnPage === 0) doc.addPage();
+
+      const column = indexOnPage % columns;
+      const row = Math.floor(indexOnPage / columns);
+      const x = marginX + column * (cardWidth + gapX);
+      const y = marginY + row * (cardHeight + gapY);
+      const qrDataUrl = await createStudentQRDataUrl(`smartpresence:${student.id}`);
+
+      doc.setDrawColor(203, 213, 225);
+      doc.setLineWidth(0.4);
+      doc.roundedRect(x, y, cardWidth, cardHeight, 3, 3);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      const nameLines = doc.splitTextToSize(`${student.nom} ${student.prenom}`, cardWidth - 8).slice(0, 2);
+      doc.text(nameLines, x + cardWidth / 2, y + 8, { align: 'center' });
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(71, 85, 105);
+      doc.text('CLUB ROBOTIQUE • LYCÉE MODERNE 1 D’ABOBO', x + cardWidth / 2, y + 17, { align: 'center' });
+
+      doc.addImage(qrDataUrl, 'JPEG', x + (cardWidth - qrSize) / 2, y + 20, qrSize, qrSize);
+
+      doc.setFontSize(8);
+      doc.setTextColor(15, 23, 42);
+      doc.text(`Classe : ${student.classe || '-'}`, x + cardWidth / 2, y + 71, { align: 'center' });
+      doc.text(`Matricule : ${student.matricule || student.id}`, x + cardWidth / 2, y + 77, { align: 'center' });
+      doc.setFontSize(6.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text('Badge personnel de pointage', x + cardWidth / 2, y + 83, { align: 'center' });
+    }
+
+    doc.save(`badges_qr_club_robotique_${getTodayDateString()}.pdf`);
+    showToast(`${students.length} badges QR générés dans un PDF.`);
+  } catch (error) {
+    console.error('Erreur de génération des badges QR :', error);
+    alert("Une erreur est survenue lors de la génération des badges QR. Vérifiez les bibliothèques locales de l'application.");
+  }
+};
+
+function createStudentQRDataUrl(value) {
+  return new Promise((resolve, reject) => {
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '-10000px';
+    document.body.appendChild(container);
+
+    try {
+      new QRCode(container, {
+        text: value,
+        width: 256,
+        height: 256,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+      const canvas = container.querySelector('canvas');
+      if (!canvas) {
+        throw new Error('Le générateur QR n’a pas produit de canevas.');
+      }
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.96);
+      container.remove();
+      resolve(dataUrl);
+    } catch (error) {
+      container.remove();
+      reject(error);
+    }
+  });
+}
+
+let html5QrCodeScanner = null;
+let scannerStartPromise = null;
+let lastScannedCode = '';
+let lastScanAt = 0;
+
+function playSuccessBeep() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+
+  try {
+    const audioContext = new AudioContextClass();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+    gain.gain.setValueAtTime(0.15, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.18);
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.18);
+    window.setTimeout(() => audioContext.close(), 250);
+  } catch (error) {
+    console.warn('Bip sonore indisponible :', error);
+  }
+}
+
+function handleScanSuccess(decodedText) {
+  const rawCode = String(decodedText || '').trim();
+  if (!rawCode) return;
+
+  const now = Date.now();
+  if (rawCode === lastScannedCode && now - lastScanAt < 1500) return;
+  lastScannedCode = rawCode;
+  lastScanAt = now;
+
+  const tokenPrefix = 'smartpresence:';
+  const studentId = rawCode.toLowerCase().startsWith(tokenPrefix)
+    ? rawCode.slice(tokenPrefix.length).trim()
+    : '';
+  let student = studentId ? students.find(item => item.id === studentId) : null;
+
+  if (!student && !studentId) {
+    const matchingStudents = students.filter(item =>
+      String(item.matricule || '').toLowerCase() === rawCode.toLowerCase()
+    );
+    if (matchingStudents.length === 1) student = matchingStudents[0];
+    if (matchingStudents.length > 1) {
+      setScannerFeedback('Ce matricule est partagé par plusieurs élèves. Utilisez leur badge QR personnel.', 'error');
+      return;
+    }
+  }
+
+  if (!student) {
+    setScannerFeedback(`Aucun élève trouvé pour le code : ${rawCode}`, 'error');
+    return;
+  }
+
+  if (!allAttendance[selectedDate]) allAttendance[selectedDate] = {};
+  const id = student.id || student.matricule;
+  if (allAttendance[selectedDate][id]) {
+    setScannerFeedback(`${student.nom} ${student.prenom} est déjà pointé(e) présent(e).`, 'success');
+    return;
+  }
+
+  allAttendance[selectedDate][id] = true;
+  saveAttendanceLocally();
+  playSuccessBeep();
+  setScannerFeedback(`${student.nom} ${student.prenom} pointé(e) PRÉSENT !`, 'success');
+}
+
+function setScannerFeedback(message, state = '') {
+  const feedback = document.getElementById('scannerFeedback');
+  if (!feedback) return;
+  feedback.className = `scanner-feedback${state ? ` ${state}` : ''}`;
+  feedback.textContent = message;
+}
+
+async function startScanner() {
+  const modal = document.getElementById('qrModal');
+  if (!modal) return;
+  if (typeof window.Html5Qrcode !== 'function') {
+    setScannerFeedback("La bibliothèque de scan n'est pas disponible. Vérifiez les fichiers de l'application.", 'error');
+    modal.classList.remove('hidden');
+    return;
+  }
+
+  modal.classList.remove('hidden');
+  setScannerFeedback('Autorisez l’accès à la caméra et présentez un badge QR...');
+  if (scannerStartPromise) return;
+  if (!html5QrCodeScanner) {
+    const formats = window.Html5QrcodeSupportedFormats;
+    const supportedFormats = formats ? [
+      formats.QR_CODE,
+      formats.CODE_128,
+      formats.CODE_39,
+      formats.EAN_13,
+      formats.EAN_8,
+      formats.UPC_A,
+      formats.UPC_E,
+      formats.ITF
+    ].filter(format => format !== undefined) : undefined;
+    html5QrCodeScanner = new Html5Qrcode('qr-reader', supportedFormats ? { formatsToSupport: supportedFormats } : {});
+  }
+  if (html5QrCodeScanner.isScanning) return;
+
+  scannerStartPromise = html5QrCodeScanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    handleScanSuccess
+  ).catch(error => {
+    console.error('Erreur d’accès à la caméra :', error);
+    setScannerFeedback('Impossible d’accéder à la webcam. Vérifiez les autorisations et utilisez localhost ou HTTPS.', 'error');
+  }).finally(() => {
+    scannerStartPromise = null;
+  });
+  await scannerStartPromise;
+}
+
+async function stopScanner() {
+  const modal = document.getElementById('qrModal');
+  if (scannerStartPromise) await scannerStartPromise;
+  if (html5QrCodeScanner?.isScanning) {
+    try {
+      await html5QrCodeScanner.stop();
+    } catch (error) {
+      console.error('Erreur lors de l’arrêt du scanner :', error);
+      setScannerFeedback('La caméra n’a pas pu être arrêtée correctement.', 'error');
+      return;
+    }
+  }
+  modal?.classList.add('hidden');
+}
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {

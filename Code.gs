@@ -34,12 +34,12 @@ function doGet(e) {
     
     if (sheetStudents && sheetStudents.getLastRow() > 1) {
       var lastRow = sheetStudents.getLastRow();
-      var lastCol = Math.max(sheetStudents.getLastColumn(), 8);
+      var lastCol = Math.max(sheetStudents.getLastColumn(), 10);
       var values = sheetStudents.getRange(2, 1, lastRow - 1, lastCol).getValues();
       
       for (var i = 0; i < values.length; i++) {
         var row = values[i];
-        // En-têtes attendus : [N°, Matricule, Nom, Prénom, Sexe, Âge, Classe, Contact Parents, Statut]
+        // En-têtes attendus : [N°, Matricule, Nom, Prénom, Sexe, Âge, Classe, Contact Parents, Statut, ID Élève]
         var matricule = String(row[1] || "").trim();
         var nom = String(row[2] || "").trim();
         var prenom = String(row[3] || "").trim();
@@ -47,10 +47,11 @@ function doGet(e) {
         var age = row[5] ? parseInt(row[5], 10) : "";
         var classe = String(row[6] || "").trim();
         var contact = formatContactCI(row[7]);
+        var storedId = String(row[9] || "").trim();
         
         if (nom || matricule) {
           students.push({
-            id: matricule || ("STU-" + (i + 1)),
+            id: storedId || matricule || ("STU-" + (i + 1)),
             matricule: matricule,
             nom: nom,
             prenom: prenom,
@@ -69,20 +70,21 @@ function doGet(e) {
     
     if (sheetDetail && sheetDetail.getLastRow() > 1) {
       var lastDetailRow = sheetDetail.getLastRow();
-      var detailValues = sheetDetail.getRange(2, 1, lastDetailRow - 1, 6).getValues();
+      var detailValues = sheetDetail.getRange(2, 1, lastDetailRow - 1, Math.max(sheetDetail.getLastColumn(), 6)).getValues();
       
       for (var j = 0; j < detailValues.length; j++) {
         var dRow = detailValues[j];
-        // [Date Séance, Matricule, Nom, Prénom, Classe, Statut Présence]
+        // [Date Séance, Matricule, Nom, Prénom, Classe, Statut Présence, Horodatage, ID Élève]
         var dDate = String(dRow[0] || "").trim();
         var dMatricule = String(dRow[1] || "").trim();
+        var dStudentId = String(dRow[7] || dMatricule).trim();
         var dStatut = String(dRow[5] || "").trim().toUpperCase();
         
-        if (dDate && dMatricule) {
+        if (dDate && dStudentId) {
           if (!attendances[dDate]) {
             attendances[dDate] = {};
           }
-          attendances[dDate][dMatricule] = (dStatut === "PRÉSENT" || dStatut === "PRESENT");
+          attendances[dDate][dStudentId] = (dStatut === "PRÉSENT" || dStatut === "PRESENT");
         }
       }
     }
@@ -152,7 +154,8 @@ function doPost(e) {
       "Âge", 
       "Classe", 
       "Contact Parents", 
-      "Statut"
+      "Statut",
+      "ID Élève"
     ];
     
     var studentRows = [];
@@ -169,7 +172,8 @@ function doPost(e) {
         s.age !== undefined && s.age !== null ? s.age : "",
         s.classe || "",
         formatContactCI(s.contact || ""),
-        "Inscrit"
+        "Inscrit",
+        s.id || s.matricule || ""
       ]);
     }
     
@@ -273,7 +277,8 @@ function doPost(e) {
       "Prénom", 
       "Classe", 
       "Statut Présence", 
-      "Horodatage Enregistrement"
+      "Horodatage Enregistrement",
+      "ID Élève"
     ];
     
     var detailRows = [];
@@ -294,7 +299,8 @@ function doPost(e) {
           stud.prenom,
           stud.classe,
           isPres ? "PRÉSENT" : "ABSENT",
-          nowFormatted
+          nowFormatted,
+          stud.id || stud.matricule
         ]);
       }
     }

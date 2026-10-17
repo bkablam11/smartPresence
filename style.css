@@ -532,6 +532,10 @@ header.app-header {
   background: #f1f5f9;
 }
 
+.qr-pdf-card {
+  background: linear-gradient(135deg, #0369a1 0%, #1e3a8a 100%);
+}
+
 /* ADD STUDENT FORM */
 .form-title {
   font-size: 0.95rem;
@@ -684,6 +688,7 @@ header.app-header {
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .btn-secondary {
@@ -717,6 +722,18 @@ header.app-header {
   background: #fef2f2;
   border-color: #fecaca;
   color: #991b1b;
+}
+
+.btn-scanner {
+  background: #ecfeff;
+  border-color: #a5f3fc;
+  color: #0e7490;
+}
+
+.btn-scanner:hover {
+  background: #cffafe;
+  border-color: #67e8f9;
+  color: #155e75;
 }
 
 /* FILTRES PAR GENRE ET PAR ÂGE */
@@ -896,6 +913,80 @@ header.app-header {
   border-radius: 6px;
   font-weight: 700;
   font-size: 0.7rem;
+}
+
+/* QR code scanner dialog */
+.scanner-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+.scanner-modal.hidden {
+  display: none;
+}
+
+.scanner-modal-content {
+  width: min(100%, 500px);
+  padding: 1.25rem;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.scanner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.scanner-header h3 {
+  color: #0f172a;
+  font-size: 1.05rem;
+}
+
+.btn-close {
+  border: 0;
+  background: none;
+  color: #64748b;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#qr-reader {
+  width: 100%;
+  max-width: 450px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.scanner-feedback {
+  margin-top: 1rem;
+  padding: 0.7rem;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.scanner-feedback.success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.scanner-feedback.error {
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
 .badge-age {
