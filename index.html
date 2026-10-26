@@ -54,6 +54,11 @@
             <span class="dot-pulse"></span> En ligne
           </div>
 
+          <!-- État de la séance (Ouverte / Fermée par le prof) -->
+<div id="sessionBadge" class="status-badge session-closed">
+  <span class="dot-pulse-session"></span> Séance Fermée (En attente du prof)
+</div>
+
           <!-- Sélecteur de Date -->
           <div class="date-picker-box">
             <label for="datePicker">Date de séance</label>
@@ -360,6 +365,80 @@
 
   <!-- SCRIPT APPLICATION PUR JAVASCRIPT -->
   <script src="./app.js"></script>
+
+  <!-- MODAL DU BILAN DE CLÔTURE DE SÉANCE (PRÉSENTS & ABSENTS) -->
+<div id="sessionSummaryModal" class="modal-overlay hidden">
+  <div class="modal-content modal-summary">
+    <div class="modal-header">
+      <div>
+        <h2 style="font-size: 1.3rem; margin: 0;">📋 Bilan Officiel de la Séance</h2>
+        <small id="summarySubtitle" style="color: #64748b; font-weight: 600;"></small>
+      </div>
+      <button class="btn-close-modal" onclick="closeSummaryModal()">✕</button>
+    </div>
+
+    <!-- Compteurs rapides du bilan -->
+    <div class="summary-stats-bar">
+      <div class="summary-box box-presents">
+        <span class="num" id="sumPresentsCount">0</span>
+        <span class="lbl">ÉLÈVES PRÉSENTS</span>
+      </div>
+      <div class="summary-box box-absents">
+        <span class="num" id="sumAbsentsCount">0</span>
+        <span class="lbl">ÉLÈVES ABSENTS</span>
+      </div>
+      <div class="summary-box box-rate">
+        <span class="num" id="sumRate">0%</span>
+        <span class="lbl">TAUX ASSIDUITÉ</span>
+      </div>
+    </div>
+
+    <!-- Listes côte à côte : Présents vs Absents -->
+    <div class="summary-tables-grid">
+      <!-- Colonne Présents -->
+      <div class="summary-col col-presents">
+        <h4 class="col-title">✅ Liste des Présents (<span id="countPresCol">0</span>)</h4>
+        <div class="table-scroll-wrap">
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th>N° Badge</th>
+                <th>Nom & Prénoms</th>
+                <th>Classe</th>
+              </tr>
+            </thead>
+            <tbody id="presentsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Colonne Absents -->
+      <div class="summary-col col-absents">
+        <h4 class="col-title">❌ Liste des Absents (<span id="countAbsCol">0</span>)</h4>
+        <div class="table-scroll-wrap">
+          <table class="summary-table">
+            <thead>
+              <tr>
+                <th>N° Badge</th>
+                <th>Nom & Prénoms</th>
+                <th>Classe</th>
+                <th>Contact Parents</th>
+              </tr>
+            </thead>
+            <tbody id="absentsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions post-clôture -->
+    <div class="summary-actions">
+      <button class="btn-pdf" onclick="downloadAttendancePDF()">📄 Télécharger Fiche PDF</button>
+      <button class="btn-sync" onclick="syncToGoogleSheet()">🔄 Sauvegarder dans Google Sheets</button>
+      <button class="btn-secondary" onclick="closeSummaryModal()">Fermer</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

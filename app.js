@@ -4,66 +4,41 @@
  * Base de données : Google Sheets ("smartPresence")
  */
 
-// 1. URL OFFICIELLE GOOGLE APPS SCRIPT DÉPLOYÉE
+// =====================================================================
+// 1. CONFIGURATION & ÉTAT GLOBAL DE L'APPLICATION
+// =====================================================================
+
+// URL officielle du script Google Apps Script déployé
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiENiDA1uu4sbSV8dTHFCmMoWl4rv9RARnmrKlFClnoE88W_rra6pJH5LOyBZtCAf0jw/exec';
 
-// 2. BASE DE DONNÉES DES 45 ÉLÈVES OFFICIELS DU CLUB ROBOTIQUE
-const INITIAL_STUDENTS = [
-  { id: "24428493-L", matricule: "24428493-L", nom: "ABOYA", prenom: "AYA DORIANE", sexe: "F", anneeNaissance: 2012, age: 14, classe: "5e 5", contact: "0757882699" },
-  { id: "23050709-K", matricule: "23050709-K", nom: "AMEA", prenom: "AKABLA ROSE DE LIMA", sexe: "F", anneeNaissance: 2013, age: 13, classe: "4e 7", contact: "0575422038 / 0585351354" },
-  { id: "25052363-F", matricule: "25052363-F", nom: "AMOUSSOU", prenom: "MIEMA MARIE JOEL", sexe: "F", anneeNaissance: 2013, age: 13, classe: "6e 6", contact: "0506135513" },
-  { id: "24034743-Z", matricule: "24034743-Z", nom: "BAMBA", prenom: "HABIBA LEILA", sexe: "F", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0788476905" },
-  { id: "23636373-H", matricule: "23636373-H", nom: "BAYOU", prenom: "EMMANEULLA", sexe: "F", anneeNaissance: 2013, age: 13, classe: "4e 7", contact: "0504429815 / 0103350035" },
-  { id: "24051628-W", matricule: "24051628-W", nom: "CISSE", prenom: "BINTOU YASMINE", sexe: "F", anneeNaissance: 2012, age: 14, classe: "5e 6", contact: "0505164612" },
-  { id: "24051628-W-2", matricule: "24051628-W", nom: "CISSOKO", prenom: "BINTOU ZAHARA", sexe: "F", anneeNaissance: 2014, age: 12, classe: "5e 6", contact: "0504775373 / 0546058924" },
-  { id: "23789652-M", matricule: "23789652-M", nom: "COULIBALY", prenom: "LATIFA", sexe: "F", anneeNaissance: 2012, age: 14, classe: "4e 6", contact: "0505798594" },
-  { id: "25245204-K", matricule: "25245204-K", nom: "DIABY", prenom: "NABINTOU", sexe: "F", anneeNaissance: 2012, age: 14, classe: "5e 5", contact: "0546190182" },
-  { id: "23378292-S", matricule: "23378292-S", nom: "DIARRA", prenom: "KADIDJATOU", sexe: "F", anneeNaissance: 2012, age: 14, classe: "4e 6", contact: "0707550141" },
-  { id: "24078244-P", matricule: "24078244-P", nom: "DIARRASSOUBA", prenom: "ROKIA", sexe: "F", anneeNaissance: 2014, age: 12, classe: "5e 4", contact: "0505788491" },
-  { id: "24209827-V", matricule: "24209827-V", nom: "DIOMANDE", prenom: "MOHAMED", sexe: "M", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0142807357" },
-  { id: "24252164-V", matricule: "24252164-V", nom: "GBOUKROU", prenom: "MARIE ANGE PRUNELLE", sexe: "F", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0504840080" },
-  { id: "23378300-Q", matricule: "23378300-Q", nom: "GNAKOURI", prenom: "MARIE ESTHER", sexe: "F", anneeNaissance: 2012, age: 14, classe: "4e 4", contact: "0505496877" },
-  { id: "23663061-P", matricule: "23663061-P", nom: "GUEU", prenom: "DEBORA", sexe: "F", anneeNaissance: 2012, age: 14, classe: "4e 2", contact: "0584720934 / 0506515887" },
-  { id: "25281462-S", matricule: "25281462-S", nom: "KARAMOKO", prenom: "AMINATA SABOU", sexe: "F", anneeNaissance: 2014, age: 12, classe: "6e 6", contact: "0103080026" },
-  { id: "25286131-S", matricule: "25286131-S", nom: "KAZA", prenom: "ESTHER", sexe: "F", anneeNaissance: 2014, age: 12, classe: "6e 6", contact: "0748087657" },
-  { id: "24097437-E", matricule: "24097437-E", nom: "KOBENAN", prenom: "KOUASSI ABRAHAM", sexe: "M", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0747043818" },
-  { id: "23050885-A", matricule: "23050885-A", nom: "KOFFI", prenom: "RUTH", sexe: "F", anneeNaissance: 2012, age: 14, classe: "4e 7", contact: "0101941057 / 0153858191" },
-  { id: "24185292-P", matricule: "24185292-P", nom: "KONE", prenom: "ISMAEL KHALIL", sexe: "M", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0788643857" },
-  { id: "24102404-N", matricule: "24102404-N", nom: "KONE", prenom: "NELLY MALIKA", sexe: "F", anneeNaissance: 2013, age: 13, classe: "5e 6", contact: "0757957550" },
-  { id: "24228427-U", matricule: "24228427-U", nom: "KONE", prenom: "YAFOULO AMBRE", sexe: "F", anneeNaissance: 2013, age: 13, classe: "5e 6", contact: "0707296562" },
-  { id: "24436584-H", matricule: "24436584-H", nom: "KOUADIO", prenom: "AHOU ELIANE", sexe: "F", anneeNaissance: 2012, age: 14, classe: "5e 6", contact: "0708435112" },
-  { id: "24381686-T", matricule: "24381686-T", nom: "KOUADIO", prenom: "IRINA MARIE", sexe: "F", anneeNaissance: 2012, age: 14, classe: "5e 6", contact: "0708554681" },
-  { id: "24024345-L", matricule: "24024345-L", nom: "KOUADIO", prenom: "KOUAKOU CHRIST ASER", sexe: "M", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0506307328" },
-  { id: "23382400-N", matricule: "23382400-N", nom: "KOUAKOU", prenom: "AHOU GNAMIEN SAH TABITHA", sexe: "F", anneeNaissance: 2013, age: 13, classe: "4e 3", contact: "0154685475" },
-  { id: "24097486-A", matricule: "24097486-A", nom: "KOUAKOU", prenom: "AHOUTOU MANUELA", sexe: "F", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0747475101" },
-  { id: "24036113-E", matricule: "24036113-E", nom: "KOUAME", prenom: "KOFFI MICHEL LOIC", sexe: "M", anneeNaissance: 2012, age: 14, classe: "5e 7", contact: "0504838600" },
-  { id: "25126750-W", matricule: "25126750-W", nom: "KOUDOUGOU", prenom: "VANESSA", sexe: "F", anneeNaissance: 2012, age: 14, classe: "6e 6", contact: "0707607293 / 0708978637" },
-  { id: "22417315-U", matricule: "22417315-U", nom: "KOUE ZRANSSEU", prenom: "ANGE JERIELLE", sexe: "F", anneeNaissance: 2012, age: 14, classe: "4e 7", contact: "0768435628" },
-  { id: "24024467-U", matricule: "24024467-U", nom: "N'GUETTIA", prenom: "ADJA KOUMAN EPIPHANIE", sexe: "F", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0707264677" },
-  { id: "24478985-P", matricule: "24478985-P", nom: "OBOUMOU BEDE", prenom: "MARIE GRACE", sexe: "F", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0555128732" },
-  { id: "24335028-R", matricule: "24335028-R", nom: "OUATTARA", prenom: "MARIAM", sexe: "F", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0556272558" },
-  { id: "24209670-D", matricule: "24209670-D", nom: "SANOGO", prenom: "MOHAMED AMINE", sexe: "M", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0103730704" },
-  { id: "24040995-Y", matricule: "24040995-Y", nom: "SAWADOGO", prenom: "SAIDOU", sexe: "M", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0564996918" },
-  { id: "24503832-H", matricule: "24503832-H", nom: "SIDIBE", prenom: "FATOUMA LEILA ESTHER", sexe: "F", anneeNaissance: 2014, age: 12, classe: "6e 6", contact: "0768214435" },
-  { id: "24209677-E", matricule: "24209677-E", nom: "SORO", prenom: "NAGNINMAN SAMIRA", sexe: "F", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0702672054" },
-  { id: "24072274-P", matricule: "24072274-P", nom: "SYLLA", prenom: "ALASSANE", sexe: "M", anneeNaissance: 2012, age: 14, classe: "5e 7", contact: "0505191060" },
-  { id: "24409540-X", matricule: "24409540-X", nom: "SYLLA", prenom: "SOULEYMANE", sexe: "M", anneeNaissance: 2014, age: 12, classe: "5e 7", contact: "0716654877" },
-  { id: "24177259-D", matricule: "24177259-D", nom: "TAPE", prenom: "MOHAMED ADEM", sexe: "M", anneeNaissance: 2012, age: 14, classe: "5e 7", contact: "0709549303" },
-  { id: "24128913-Y", matricule: "24128913-Y", nom: "YORO", prenom: "WILFRIED KEVIN", sexe: "M", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0713753676" },
-  { id: "24472856-C", matricule: "24472856-C", nom: "ZOUZOU", prenom: "JULES CHRIST EZECHIEL", sexe: "M", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0701046467" },
-  { id: "23441920-K", matricule: "23441920-K", nom: "TRAORE", prenom: "ABOUBACAR", sexe: "M", anneeNaissance: 2012, age: 14, classe: "4e 6", contact: "0777123456" },
-  { id: "24551290-R", matricule: "24551290-R", nom: "BLE", prenom: "JOSUE", sexe: "M", anneeNaissance: 2013, age: 13, classe: "5e 7", contact: "0505889911" },
-  { id: "25667812-P", matricule: "25667812-P", nom: "TOURE", prenom: "FATOUMATA", sexe: "F", anneeNaissance: 2014, age: 12, classe: "6e 6", contact: "0708990022" }
+// Badges officiels des professeurs encadreurs (Sécurité d'ouverture/fermeture)
+const TEACHERS = [
+  { id: "PROF-01", code: "smartpresence:prof:01", nom: "M. KABLAN", role: "Encadreur Principal" },
+  { id: "PROF-02", code: "smartpresence:prof:02", nom: "ENCADREUR ATELIER", role: "Responsable Robotique" }
 ];
 
-// 3. ÉTAT DE L'APPLICATION
 let students = [];
 let allAttendance = {}; // { "YYYY-MM-DD": { [studentId]: boolean } }
 let selectedDate = getTodayDateString();
 let isOnline = navigator.onLine;
 let editingStudentId = null;
 
-// Helper date local YYYY-MM-DD
+// Gestion de la séance sécurisée par l'encadreur
+let isSessionOpen = false;
+let sessionOpenedBy = null;
+let sessionOpenedAt = null;
+
+// Scanner QR Code
+let html5QrCodeScanner = null;
+let scannerStartPromise = null;
+let lastScannedCode = '';
+let lastScanAt = 0;
+
+
+// =====================================================================
+// 2. UTILITAIRES DE DATE, ÂGE ET FORMATAGE
+// =====================================================================
+
 function getTodayDateString() {
   const today = new Date();
   const offset = today.getTimezoneOffset();
@@ -71,12 +46,10 @@ function getTodayDateString() {
   return localToday.toISOString().split('T')[0];
 }
 
-// Année courante dynamique (ex: 2026)
 function getCurrentYear() {
   return new Date().getFullYear();
 }
 
-// Récupère l'année de naissance de manière fiable
 function getBirthYear(student) {
   if (!student) return null;
   const curYear = getCurrentYear();
@@ -94,7 +67,6 @@ function getBirthYear(student) {
   return null;
 }
 
-// Calcule l'âge dynamique en fonction de l'année en cours
 function calculateAge(student) {
   if (!student) return null;
   const curYear = getCurrentYear();
@@ -107,8 +79,6 @@ function calculateAge(student) {
   return null;
 }
 
-// Normalisation et formatage des numéros de téléphone en Côte d'Ivoire (10 chiffres)
-// Restaure automatiquement le "0" initial si Google Sheets l'a tronqué en nombre
 function formatContact(val) {
   if (!val && val !== 0) return '';
   const str = String(val).trim();
@@ -124,25 +94,23 @@ function formatSinglePhone(phone) {
   if (!phone) return '';
   const digits = phone.replace(/\D/g, '');
   
-  // Numéro à 9 chiffres où le zéro initial a été supprimé (ex: 757882699 -> 0757882699, 506135513 -> 0506135513)
   if (digits.length === 9 && ['1', '5', '7', '2'].includes(digits[0])) {
     return '0' + digits;
   }
-  
-  // Numéro standard à 10 chiffres commençant par 0
   if (digits.length === 10 && digits.startsWith('0')) {
     return digits;
   }
-  
-  // Numéro avec indicatif 225 (+22507... ou 22507...)
   if (digits.startsWith('225') && digits.length === 13) {
     return '+' + digits;
   }
-
   return phone;
 }
 
-// Tri alphabétique des élèves par Nom puis Prénom et normalisation des contacts & âges dynamiques
+
+// =====================================================================
+// 3. TRI, FUSION ET GESTION DES IDENTIFIANTS DE CARTES
+// =====================================================================
+
 function sortStudents(list) {
   const curYear = getCurrentYear();
   const sorted = [...list]
@@ -152,12 +120,19 @@ function sortStudents(list) {
       const calcAge = bYear ? (curYear - bYear) : (s.age || '');
       return {
         ...s,
+        idCarte: s.idCarte ? String(s.idCarte).trim() : '',
         anneeNaissance: bYear || s.anneeNaissance || '',
         age: calcAge || '',
         contact: formatContact(s.contact)
       };
     })
     .sort((a, b) => {
+      // Tri prioritaire par N° de Carte si existant, sinon alphabétique
+      if (a.idCarte && b.idCarte) {
+        const numA = parseInt(a.idCarte, 10);
+        const numB = parseInt(b.idCarte, 10);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      }
       const nameA = `${a.nom} ${a.prenom}`.toUpperCase();
       const nameB = `${b.nom} ${b.prenom}`.toUpperCase();
       return nameA.localeCompare(nameB, 'fr');
@@ -175,7 +150,11 @@ function sortStudents(list) {
     }
     idCounts.set(baseId, suffix);
     usedIds.add(id);
-    return { ...student, id };
+
+    // Attribution automatique d'un numéro de carte 0001 à 0100 si absent
+    const idCarte = student.idCarte || String(index + 1).padStart(4, '0');
+
+    return { ...student, id, idCarte };
   });
 }
 
@@ -189,18 +168,24 @@ function mergeStudents(currentList, incomingList) {
   }, new Map());
   const currentCounts = matriculeCounts(current);
   const incomingCounts = matriculeCounts(incoming);
+
   const identity = student => {
+    const idCarte = String(student.idCarte || '').trim();
     const matricule = String(student.matricule || '').trim().toLowerCase();
     const name = `${student.nom || ''} ${student.prenom || ''}`
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .trim()
       .toLowerCase();
+
+    if (idCarte) return `carte:${idCarte}`;
     if (!matricule) return `name:${name || String(student.id || '').toLowerCase()}`;
     return `matricule:${matricule}|name:${name}`;
   };
+
   const merged = new Map(current.map(student => [identity(student), student]));
   const uniqueCurrentByMatricule = new Map();
+
   current.forEach(student => {
     const matricule = String(student.matricule || '').trim().toLowerCase();
     if (matricule && currentCounts.get(matricule) === 1) {
@@ -226,33 +211,30 @@ function mergeStudents(currentList, incomingList) {
   return sortStudents(Array.from(merged.values()));
 }
 
-// 4. INITIALISATION ET PERSISTANCE LOCALE
+
+// =====================================================================
+// 4. INITIALISATION & PERSISTANCE LOCALE (OFFLINE-FIRST)
+// =====================================================================
+
 function initApp() {
-  // 1. Charge les élèves (priorité au cache local, sinon les 45 élèves officiels)
   try {
     const storedStudents = localStorage.getItem('club_robotique_students');
-    let loadedList = [...INITIAL_STUDENTS];
-
     if (storedStudents) {
       const parsed = JSON.parse(storedStudents);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        loadedList = mergeStudents(INITIAL_STUDENTS, parsed);
+        students = sortStudents(parsed);
       }
     }
-
-    students = sortStudents(loadedList);
-    localStorage.setItem('club_robotique_students', JSON.stringify(students));
 
     const storedAttendance = localStorage.getItem('club_robotique_attendance');
     if (storedAttendance) {
       allAttendance = JSON.parse(storedAttendance);
     }
   } catch (e) {
-    console.error('Erreur chargement local', e);
-    students = sortStudents([...INITIAL_STUDENTS]);
+    console.error('Erreur chargement local :', e);
+    students = [];
   }
 
-  // 2. Initialise le sélecteur de date
   const dateInput = document.getElementById('datePicker');
   if (dateInput) {
     dateInput.value = selectedDate;
@@ -262,31 +244,32 @@ function initApp() {
     });
   }
 
-  // 3. Événements réseau (Hors-ligne / En ligne)
   window.addEventListener('online', () => {
     isOnline = true;
     updateNetworkStatus();
-    showToast('🌐 Connexion Internet rétablie.');
+    showToast('🌐 Connexion rétablie. Synchronisation avec Google Sheets...');
     const banner = document.getElementById('reconnectBanner');
     if (banner) banner.classList.remove('hidden');
-    // Actualisation silencieuse en tâche de fond
     fetchFromGoogleSheet(true);
   });
 
   window.addEventListener('offline', () => {
     isOnline = false;
     updateNetworkStatus();
-    showToast('⚠️ Vous êtes hors-ligne. Les modifications sont enregistrées sur cet appareil.');
+    showToast('⚠️ Vous êtes hors-ligne. Les pointages restent enregistrés en local.');
   });
 
   setupEventListeners();
   updateNetworkStatus();
+  updateSessionUI();
   updateUI();
   renderSyncInfo();
 
-  // 4. Chargement automatique en arrière-plan depuis Google Sheets si en ligne
   if (navigator.onLine) {
-    fetchFromGoogleSheet(true);
+    const isFirstRun = students.length === 0;
+    fetchFromGoogleSheet(!isFirstRun);
+  } else if (students.length === 0) {
+    showToast('⚠️ Base locale vide. Connectez-vous à Internet pour charger la liste.');
   }
 }
 
@@ -303,6 +286,19 @@ function updateNetworkStatus() {
   }
 }
 
+function updateSessionUI() {
+  const badge = document.getElementById('sessionBadge');
+  if (!badge) return;
+
+  if (isSessionOpen) {
+    badge.className = 'status-badge session-open';
+    badge.innerHTML = `<span class="dot-pulse-session"></span> Séance Ouverte (${sessionOpenedBy ? sessionOpenedBy.nom : 'Prof'})`;
+  } else {
+    badge.className = 'status-badge session-closed';
+    badge.innerHTML = `<span class="dot-pulse-session"></span> Séance Fermée (En attente du prof)`;
+  }
+}
+
 function saveStudentsLocally() {
   students = sortStudents(students);
   localStorage.setItem('club_robotique_students', JSON.stringify(students));
@@ -313,14 +309,71 @@ function saveAttendanceLocally() {
   updateUI();
 }
 
-// 5. SYNCHRONISATION BI-DIRECTIONNELLE AVEC GOOGLE SHEETS
 
-// A. LECTURE : Google Sheets -> Application
+// =====================================================================
+// 5. SIGNAUX SONORES (WEB AUDIO API - 100% SANS FICHIER AUDIO EXTERNE)
+// =====================================================================
+
+function playSuccessBeep() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.18);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.18);
+    setTimeout(() => audioCtx.close(), 250);
+  } catch (e) {}
+}
+
+function playAlertBeep() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.35);
+    setTimeout(() => audioCtx.close(), 400);
+  } catch (e) {}
+}
+
+function playTeacherBeep() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    [587.33, 880].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.12);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime + i * 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.12 + 0.12);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime + i * 0.12);
+      osc.stop(audioCtx.currentTime + i * 0.12 + 0.12);
+    });
+    setTimeout(() => audioCtx.close(), 500);
+  } catch (e) {}
+}
+
+
+// =====================================================================
+// 6. SYNCHRONISATION BI-DIRECTIONNELLE AVEC GOOGLE SHEETS
+// =====================================================================
+
 window.fetchFromGoogleSheet = async function(silent = false) {
   if (!navigator.onLine) {
-    if (!silent) {
-      alert("⚠️ Vous êtes actuellement hors-ligne. Impossible de contacter Google Sheets pour le moment.");
-    }
+    if (!silent) alert("⚠️ Vous êtes actuellement hors-ligne. Impossible de contacter Google Sheets pour le moment.");
     return;
   }
 
@@ -337,23 +390,15 @@ window.fetchFromGoogleSheet = async function(silent = false) {
       headers: { 'Accept': 'application/json' }
     });
 
-    if (!response.ok) {
-      throw new Error(`Erreur réseau HTTP : ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`Erreur réseau HTTP : ${response.status}`);
     const data = await response.json();
 
     if (data.status === 'success') {
-      let updatedCount = 0;
-
-      // 1. Mise à jour des élèves s'ils existent dans la feuille
       if (Array.isArray(data.students) && data.students.length > 0) {
         students = mergeStudents(students, data.students);
         saveStudentsLocally();
-        updatedCount = data.students.length;
       }
 
-      // 2. Fusion des présences historiques
       if (data.attendances && typeof data.attendances === 'object') {
         allAttendance = { ...allAttendance, ...data.attendances };
         localStorage.setItem('club_robotique_attendance', JSON.stringify(allAttendance));
@@ -364,19 +409,13 @@ window.fetchFromGoogleSheet = async function(silent = false) {
       renderSyncInfo();
       updateUI();
 
-      if (!silent) {
-        showToast(`✅ Base Google Sheets synchronisée (${students.length} élèves inscrits).`);
-      }
-    } else {
-      if (!silent) {
-        showToast(`⚠️ Réponse Google Sheets: ${data.message || 'Action non reconnue'}`);
-      }
+      if (!silent) showToast(`✅ Base Google Sheets synchronisée (${students.length} élèves inscrits).`);
+    } else if (!silent) {
+      showToast(`⚠️ Réponse Google Sheets: ${data.message || 'Action non reconnue'}`);
     }
   } catch (err) {
-    console.warn('Lecture Google Sheets:', err);
-    if (!silent) {
-      showToast('Connexion à Google Sheets impossible pour le moment.');
-    }
+    console.warn('Lecture Google Sheets :', err);
+    if (!silent) showToast('Connexion à Google Sheets impossible pour le moment.');
   } finally {
     if (btnFetch && !silent) {
       btnFetch.disabled = false;
@@ -385,10 +424,9 @@ window.fetchFromGoogleSheet = async function(silent = false) {
   }
 };
 
-// B. ÉCRITURE : Application -> Google Sheets
 window.syncToGoogleSheet = async function() {
   if (!navigator.onLine) {
-    alert("⚠️ Vous êtes actuellement HORS-LIGNE.\n\nToutes vos modifications sont sauvegardées en toute sécurité sur cet ordinateur.\nConnectez-vous à Internet pour enregistrer dans Google Sheets.");
+    alert("⚠️ Vous êtes actuellement HORS-LIGNE.\n\nToutes vos modifications sont sauvegardées en local sur cet ordinateur.\nConnectez-vous à Internet pour enregistrer dans Google Sheets.");
     return;
   }
 
@@ -415,18 +453,14 @@ window.syncToGoogleSheet = async function() {
       timestamp: new Date().toISOString()
     };
 
-    // Utilisation de text/plain pour éviter les blocages de pré-vol CORS navigateur
-    const response = await fetch(SCRIPT_URL, {
+    await fetch(SCRIPT_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8'
-      },
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     });
 
     const nowFormatted = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    const fullDate = `Aujourd'hui à ${nowFormatted}`;
-    localStorage.setItem('club_robotique_last_sync', fullDate);
+    localStorage.setItem('club_robotique_last_sync', `Aujourd'hui à ${nowFormatted}`);
     renderSyncInfo();
 
     showToast('✅ Données enregistrées dans Google Sheets avec succès !');
@@ -434,7 +468,7 @@ window.syncToGoogleSheet = async function() {
     if (banner) banner.classList.add('hidden');
 
   } catch (err) {
-    console.error('Erreur synchro', err);
+    console.error('Erreur synchro :', err);
     showToast('Envoi transmis vers Google Sheets.');
   } finally {
     if (btnSync) {
@@ -452,11 +486,13 @@ function renderSyncInfo() {
   }
 }
 
-// 6. GESTION DES PRÉSENCES
+
+// =====================================================================
+// 7. GESTION DES PRÉSENCES & ACTIONS MANUELLES
+// =====================================================================
+
 window.toggleAttendance = function(studentId) {
-  if (!allAttendance[selectedDate]) {
-    allAttendance[selectedDate] = {};
-  }
+  if (!allAttendance[selectedDate]) allAttendance[selectedDate] = {};
   allAttendance[selectedDate][studentId] = !allAttendance[selectedDate][studentId];
   saveAttendanceLocally();
 };
@@ -465,7 +501,7 @@ window.checkAllPresent = function() {
   if (!allAttendance[selectedDate]) allAttendance[selectedDate] = {};
   const targetList = getFilteredStudents();
   targetList.forEach(s => {
-    const sid = s.id || s.matricule;
+    const sid = s.id || s.matricule || s.idCarte;
     allAttendance[selectedDate][sid] = true;
   });
   saveAttendanceLocally();
@@ -477,7 +513,7 @@ window.uncheckAll = function() {
   if (!allAttendance[selectedDate]) allAttendance[selectedDate] = {};
   const targetList = getFilteredStudents();
   targetList.forEach(s => {
-    const sid = s.id || s.matricule;
+    const sid = s.id || s.matricule || s.idCarte;
     allAttendance[selectedDate][sid] = false;
   });
   saveAttendanceLocally();
@@ -485,7 +521,11 @@ window.uncheckAll = function() {
   showToast(isFiltered ? `Présences retirées pour ${targetList.length} élève(s).` : 'Toutes les présences ont été retirées.');
 };
 
-// 7. INTERFACE ET STATISTIQUES
+
+// =====================================================================
+// 8. INTERFACE, FILTRES & STATISTIQUES
+// =====================================================================
+
 function updateUI() {
   populateAgeFilter();
   renderStats();
@@ -493,14 +533,13 @@ function updateUI() {
   renderSyncInfo();
 }
 
-// Génère dynamiquement les options du filtre par âge selon les élèves inscrits
 function populateAgeFilter() {
   const ageSelect = document.getElementById('filterAge');
   if (!ageSelect) return;
 
   const currentSelected = ageSelect.value;
-
   const ageCounts = {};
+
   students.forEach(s => {
     const age = calculateAge(s);
     if (age !== null && age > 0) {
@@ -509,21 +548,17 @@ function populateAgeFilter() {
   });
 
   const uniqueAges = Object.keys(ageCounts).map(Number).sort((a, b) => a - b);
-
   let html = '<option value="">🎂 Tous les âges</option>';
   uniqueAges.forEach(age => {
-    const count = ageCounts[age];
-    html += `<option value="${age}">${age} ans (${count})</option>`;
+    html += `<option value="${age}">${age} ans (${ageCounts[age]})</option>`;
   });
 
   ageSelect.innerHTML = html;
-
   if (currentSelected && uniqueAges.includes(parseInt(currentSelected, 10))) {
     ageSelect.value = currentSelected;
   }
 }
 
-// Fonction de filtrage partagée
 function getFilteredStudents() {
   const searchInput = document.getElementById('searchInput');
   const genderFilter = document.getElementById('filterGender');
@@ -536,12 +571,11 @@ function getFilteredStudents() {
   return students.filter(s => {
     if (!s) return false;
     const fullName = `${s.nom || ''} ${s.prenom || ''}`.toLowerCase();
-    const matricule = String(s.matricule || s.id || '').toLowerCase();
+    const matricule = String(s.matricule || '').toLowerCase();
+    const idCarte = String(s.idCarte || '').toLowerCase();
 
-    // Filtre texte
-    const matchesSearch = !searchTerm || fullName.includes(searchTerm) || matricule.includes(searchTerm);
+    const matchesSearch = !searchTerm || fullName.includes(searchTerm) || matricule.includes(searchTerm) || idCarte.includes(searchTerm);
 
-    // Filtre par genre (Fille / Garçon)
     let matchesGender = true;
     if (selectedGender) {
       const sSexe = String(s.sexe || '').trim().toUpperCase();
@@ -549,7 +583,6 @@ function getFilteredStudents() {
       matchesGender = (normSexe === selectedGender);
     }
 
-    // Filtre par âge dynamique
     let matchesAge = true;
     if (selectedAge) {
       const ageCalc = calculateAge(s);
@@ -585,8 +618,8 @@ function renderStats() {
   let presentCount = 0;
 
   students.forEach(s => {
-    const sid = s.id || s.matricule;
-    if (currentAttendance[sid] || (s.matricule && currentAttendance[s.matricule])) {
+    const sid = s.id || s.matricule || s.idCarte;
+    if (currentAttendance[sid] || (s.matricule && currentAttendance[s.matricule]) || (s.idCarte && currentAttendance[s.idCarte])) {
       presentCount++;
     }
   });
@@ -650,11 +683,12 @@ function renderStudentList() {
   }
 
   container.innerHTML = filtered.map(s => {
-    const studentId = s.id || s.matricule;
-    const isPresent = !!(currentAttendance[studentId] || (s.matricule && currentAttendance[s.matricule]));
+    const studentId = s.id || s.matricule || s.idCarte;
+    const isPresent = !!(currentAttendance[studentId] || (s.matricule && currentAttendance[s.matricule]) || (s.idCarte && currentAttendance[s.idCarte]));
     const initial = (s.nom && s.nom.trim().length > 0) ? s.nom.trim()[0].toUpperCase() : 'E';
     const ageCalculated = calculateAge(s);
     const birthYear = getBirthYear(s);
+
     return `
       <div class="student-row ${isPresent ? 'is-present' : ''}" data-id="${escapeHtml(studentId)}">
         <div class="student-left">
@@ -668,11 +702,14 @@ function renderStudentList() {
             ${initial}
           </div>
           <div class="student-info">
-            <div class="student-name">${escapeHtml(s.nom)} ${escapeHtml(s.prenom)}</div>
+            <div class="student-name">
+              ${escapeHtml(s.nom)} ${escapeHtml(s.prenom)}
+            </div>
             <div class="student-meta">
+              <span class="badge-carte-tag">N° ${escapeHtml(s.idCarte || '-')}</span>
               <span class="badge-classe">${escapeHtml(s.classe)}</span>
               <span>${s.sexe === 'F' ? '👧 Fille' : '👦 Garçon'}</span>
-              ${ageCalculated ? `<span class="badge-age" title="${birthYear ? `Né(e) en ${birthYear}` : ''}">🎂 ${ageCalculated} ans ${birthYear ? `<span style="font-weight: normal; opacity: 0.85;">(${birthYear})</span>` : ''}</span>` : ''}
+              ${ageCalculated ? `<span class="badge-age" title="${birthYear ? `Né(e) en ${birthYear}` : ''}">🎂 ${ageCalculated} ans</span>` : ''}
               ${s.matricule ? `<span style="font-family: monospace;">Mat: ${escapeHtml(s.matricule)}</span>` : ''}
               ${s.contact ? `<span>📞 ${escapeHtml(s.contact)}</span>` : ''}
             </div>
@@ -687,18 +724,28 @@ function renderStudentList() {
   }).join('');
 }
 
-// 8. GESTION DES ÉLÈVES (AJOUT / MODIFICATION / SUPPRESSION)
+
+// =====================================================================
+// 9. FORMULAIRES AJOUT, ÉDITION & SUPPRESSION ÉLÈVES
+// =====================================================================
+
 function setupEventListeners() {
   document.getElementById('searchInput')?.addEventListener('input', renderStudentList);
   document.getElementById('filterGender')?.addEventListener('change', renderStudentList);
   document.getElementById('filterAge')?.addEventListener('change', renderStudentList);
   document.getElementById('btnOpenScanner')?.addEventListener('click', startScanner);
   document.getElementById('btnCloseScanner')?.addEventListener('click', stopScanner);
+
   document.getElementById('qrModal')?.addEventListener('click', (event) => {
     if (event.target === event.currentTarget) stopScanner();
   });
+
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') stopScanner();
+    if (event.key === 'Escape') {
+      stopScanner();
+      closeEditModal();
+      closeSummaryModal();
+    }
   });
 
   const updateAgePreview = (inputEl, previewEl) => {
@@ -732,7 +779,7 @@ function setupEventListeners() {
       e.preventDefault();
       const nom = document.getElementById('newNom').value.trim().toUpperCase();
       const prenom = document.getElementById('newPrenom').value.trim();
-      const classe = document.getElementById('newClasse').value;
+      const classe = document.getElementById('newClasse').value.trim();
       const sexe = document.getElementById('newSexe').value;
       const matricule = document.getElementById('newMatricule').value.trim();
       const rawYearOrAge = document.getElementById('newAnneeNaissance')?.value.trim();
@@ -759,8 +806,10 @@ function setupEventListeners() {
         }
       }
 
+      const nextCardNum = String(students.length + 1).padStart(4, '0');
       const newStudent = {
         id: matricule || `ELEVE-${Date.now()}`,
+        idCarte: nextCardNum,
         matricule: matricule,
         nom: nom,
         prenom: prenom,
@@ -777,7 +826,7 @@ function setupEventListeners() {
       updateUI();
       addForm.reset();
       if (newYearPreview) newYearPreview.textContent = '';
-      showToast(`Élève ${nom} ${prenom} ajouté.`);
+      showToast(`Élève ${nom} ${prenom} ajouté(e) avec la carte N° ${nextCardNum}.`);
     });
   }
 
@@ -787,7 +836,7 @@ function setupEventListeners() {
       e.preventDefault();
       if (!editingStudentId) return;
 
-      const idx = students.findIndex(s => s.id === editingStudentId);
+      const idx = students.findIndex(s => s.id === editingStudentId || s.matricule === editingStudentId || s.idCarte === editingStudentId);
       if (idx !== -1) {
         const curYear = getCurrentYear();
         const rawYearOrAge = document.getElementById('editAnneeNaissance')?.value.trim();
@@ -808,7 +857,7 @@ function setupEventListeners() {
 
         students[idx].nom = document.getElementById('editNom').value.trim().toUpperCase();
         students[idx].prenom = document.getElementById('editPrenom').value.trim();
-        students[idx].classe = document.getElementById('editClasse').value;
+        students[idx].classe = document.getElementById('editClasse').value.trim();
         students[idx].sexe = document.getElementById('editSexe').value;
         students[idx].matricule = document.getElementById('editMatricule').value.trim();
         students[idx].anneeNaissance = anneeNaissance;
@@ -826,16 +875,16 @@ function setupEventListeners() {
 }
 
 window.openEditModal = function(id) {
-  const student = students.find(s => s.id === id || s.matricule === id);
+  const student = students.find(s => s.id === id || s.matricule === id || s.idCarte === id);
   if (!student) return;
 
-  editingStudentId = student.id || student.matricule;
+  editingStudentId = student.id || student.matricule || student.idCarte;
   document.getElementById('editNom').value = student.nom || '';
   document.getElementById('editPrenom').value = student.prenom || '';
   document.getElementById('editClasse').value = student.classe || '6e 6';
   document.getElementById('editSexe').value = student.sexe || 'F';
   document.getElementById('editMatricule').value = student.matricule || '';
-  
+
   const curYear = getCurrentYear();
   const bYear = student.anneeNaissance || (student.age && student.age <= 100 ? (curYear - student.age) : student.age);
   const editYearInput = document.getElementById('editAnneeNaissance');
@@ -843,8 +892,7 @@ window.openEditModal = function(id) {
   if (editYearInput) {
     editYearInput.value = bYear || '';
     if (bYear && editYearPreview) {
-      const a = curYear - bYear;
-      editYearPreview.textContent = `→ ${a} ans en ${curYear}`;
+      editYearPreview.textContent = `→ ${curYear - bYear} ans en ${curYear}`;
     } else if (editYearPreview) {
       editYearPreview.textContent = '';
     }
@@ -860,11 +908,11 @@ window.closeEditModal = function() {
 };
 
 window.deleteStudent = function(id) {
-  const s = students.find(item => item.id === id || item.matricule === id);
+  const s = students.find(item => item.id === id || item.matricule === id || item.idCarte === id);
   const name = s ? `${s.nom} ${s.prenom}` : 'cet élève';
 
   if (confirm(`Êtes-vous sûr de vouloir supprimer ${name} de la liste ?`)) {
-    students = students.filter(item => item.id !== id && item.matricule !== id);
+    students = students.filter(item => item.id !== id && item.matricule !== id && item.idCarte !== id);
     saveStudentsLocally();
     updateUI();
     showToast('Élève supprimé.');
@@ -872,11 +920,11 @@ window.deleteStudent = function(id) {
 };
 
 window.resetToDefaultStudents = function() {
-  if (confirm('Voulez-vous réinitialiser la liste officielle du Club Robotique (45 élèves) ?')) {
-    students = sortStudents([...INITIAL_STUDENTS]);
-    saveStudentsLocally();
+  if (confirm('Recharger la liste officielle des élèves depuis Google Sheets ?')) {
+    localStorage.removeItem('club_robotique_students');
+    students = [];
     updateUI();
-    showToast('Liste officielle restaurée (45 élèves).');
+    fetchFromGoogleSheet(false);
   }
 };
 
@@ -890,12 +938,229 @@ window.exportJSON = function() {
   dlAnchor.remove();
 };
 
-// 9. GÉNÉRATION PDF OFFICIELLE AVEC CLUB À GAUCHE ET LYCÉE À DROITE
+
+// =====================================================================
+// 10. WEBCAM SCANNER & WORKFLOW SÉCURISÉ (PROF -> ÉLÈVES -> PROF)
+// =====================================================================
+
+function setScannerFeedback(message, state = '') {
+  const feedback = document.getElementById('scannerFeedback');
+  if (!feedback) return;
+  feedback.className = `scanner-feedback${state ? ` ${state}` : ''}`;
+  feedback.textContent = message;
+}
+
+function handleScanSuccess(decodedText) {
+  const rawCode = String(decodedText || '').trim();
+  if (!rawCode) return;
+
+  const now = Date.now();
+  if (rawCode === lastScannedCode && now - lastScanAt < 1800) return;
+  lastScannedCode = rawCode;
+  lastScanAt = now;
+
+  // --- A. GESTION DU BADGE PROFESSEUR ---
+  const teacher = TEACHERS.find(t => 
+    t.code.toLowerCase() === rawCode.toLowerCase() || 
+    t.id.toLowerCase() === rawCode.toLowerCase()
+  );
+
+  if (teacher) {
+    playTeacherBeep();
+
+    if (!isSessionOpen) {
+      // OUVERTURE DE LA SÉANCE
+      isSessionOpen = true;
+      sessionOpenedBy = teacher;
+      sessionOpenedAt = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      updateSessionUI();
+      setScannerFeedback(`🟢 Séance OUVERTE par ${teacher.nom} à ${sessionOpenedAt}. Les élèves peuvent pointer !`, 'success');
+      showToast(`Séance ouverte par ${teacher.nom}`);
+    } else {
+      // CLÔTURE DE LA SÉANCE
+      isSessionOpen = false;
+      const closedAt = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      updateSessionUI();
+      setScannerFeedback(`🛑 Séance CLÔTURÉE par ${teacher.nom} à ${closedAt}.`, 'success');
+      stopScanner();
+      openSummaryModal(); // Ouvre immédiatement le récapitulatif Présents vs Absents
+    }
+    return;
+  }
+
+  // --- B. SI LA SÉANCE N'EST PAS OUVERTE PAR LE PROF, BLOCAGE ---
+  if (!isSessionOpen) {
+    playAlertBeep();
+    setScannerFeedback("⚠️ Séance NON ouverte. L'encadreur doit d'abord scanner son badge prof !", 'error');
+    return;
+  }
+
+  // --- C. TRAITEMENT DE L'ÉLÈVE ---
+  const tokenPrefix = 'smartpresence:';
+  const cleanCode = rawCode.toLowerCase().startsWith(tokenPrefix)
+    ? rawCode.slice(tokenPrefix.length).trim()
+    : rawCode;
+
+  const student = students.find(s => 
+    String(s.idCarte || '').toLowerCase() === cleanCode.toLowerCase() ||
+    String(s.matricule || '').toLowerCase() === cleanCode.toLowerCase() ||
+    String(s.id || '').toLowerCase() === cleanCode.toLowerCase()
+  );
+
+  if (!student) {
+    playAlertBeep();
+    setScannerFeedback(`❌ Badge inconnu : ${cleanCode}`, 'error');
+    return;
+  }
+
+  if (!allAttendance[selectedDate]) allAttendance[selectedDate] = {};
+  const studentKey = student.id || student.matricule || student.idCarte;
+
+  if (allAttendance[selectedDate][studentKey]) {
+    setScannerFeedback(`ℹ️ ${student.nom} ${student.prenom} (N° ${student.idCarte || '-'}) est DÉJÀ présent(e).`, 'success');
+    return;
+  }
+
+  allAttendance[selectedDate][studentKey] = true;
+  saveAttendanceLocally();
+  playSuccessBeep();
+  setScannerFeedback(`✅ [N° ${student.idCarte || '-'}] ${student.nom} ${student.prenom} marqué(e) PRÉSENT !`, 'success');
+}
+
+async function startScanner() {
+  const modal = document.getElementById('qrModal');
+  if (!modal) return;
+
+  if (typeof window.Html5Qrcode !== 'function') {
+    setScannerFeedback("La bibliothèque de scan n'est pas disponible. Vérifiez vos fichiers.", 'error');
+    modal.classList.remove('hidden');
+    return;
+  }
+
+  modal.classList.remove('hidden');
+  setScannerFeedback(
+    isSessionOpen 
+      ? 'Séance active : Présentez les badges élèves devant la caméra...' 
+      : 'Séance fermée : L’encadreur doit d’abord scanner son badge prof pour ouvrir.'
+  );
+
+  if (scannerStartPromise) return;
+
+  if (!html5QrCodeScanner) {
+    const formats = window.Html5QrcodeSupportedFormats;
+    const supportedFormats = formats ? [
+      formats.QR_CODE,
+      formats.CODE_128,
+      formats.CODE_39,
+      formats.EAN_13,
+      formats.EAN_8,
+      formats.UPC_A
+    ].filter(Boolean) : undefined;
+
+    html5QrCodeScanner = new Html5Qrcode('qr-reader', supportedFormats ? { formatsToSupport: supportedFormats } : {});
+  }
+
+  if (html5QrCodeScanner.isScanning) return;
+
+  scannerStartPromise = html5QrCodeScanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    handleScanSuccess
+  ).catch(error => {
+    console.error('Erreur caméra :', error);
+    setScannerFeedback('Impossible d’accéder à la webcam. Vérifiez vos autorisations.', 'error');
+  }).finally(() => {
+    scannerStartPromise = null;
+  });
+
+  await scannerStartPromise;
+}
+
+async function stopScanner() {
+  const modal = document.getElementById('qrModal');
+  if (scannerStartPromise) await scannerStartPromise;
+  if (html5QrCodeScanner?.isScanning) {
+    try {
+      await html5QrCodeScanner.stop();
+    } catch (error) {
+      console.error('Arrêt caméra :', error);
+      return;
+    }
+  }
+  modal?.classList.add('hidden');
+}
+
+
+// =====================================================================
+// 11. BILAN DE SÉANCE : LISTE DES PRÉSENTS ET DES ABSENTS
+// =====================================================================
+
+function openSummaryModal() {
+  const modal = document.getElementById('sessionSummaryModal');
+  if (!modal) return;
+
+  const currentAtt = allAttendance[selectedDate] || {};
+  const presents = [];
+  const absents = [];
+
+  students.forEach((s, idx) => {
+    const sid = s.id || s.matricule || s.idCarte;
+    const badgeNum = s.idCarte || String(idx + 1).padStart(4, '0');
+    const item = { ...s, badgeNum };
+
+    if (currentAtt[sid] || (s.matricule && currentAtt[s.matricule]) || (s.idCarte && currentAtt[s.idCarte])) {
+      presents.push(item);
+    } else {
+      absents.push(item);
+    }
+  });
+
+  const total = students.length;
+  const rate = total > 0 ? Math.round((presents.length / total) * 100) : 0;
+
+  document.getElementById('sumPresentsCount').textContent = presents.length;
+  document.getElementById('sumAbsentsCount').textContent = absents.length;
+  document.getElementById('sumRate').textContent = `${rate}%`;
+  document.getElementById('countPresCol').textContent = presents.length;
+  document.getElementById('countAbsCol').textContent = absents.length;
+  document.getElementById('summarySubtitle').textContent = `Séance du ${selectedDate} • Encadreur : ${sessionOpenedBy ? sessionOpenedBy.nom : 'M. KABLAN'}`;
+
+  const presTbody = document.getElementById('presentsTableBody');
+  presTbody.innerHTML = presents.map(p => `
+    <tr>
+      <td><span class="badge-carte-tag">N° ${escapeHtml(p.badgeNum)}</span></td>
+      <td><strong>${escapeHtml(p.nom)}</strong> ${escapeHtml(p.prenom)}</td>
+      <td><span class="badge-classe">${escapeHtml(p.classe || '-')}</span></td>
+    </tr>
+  `).join('') || '<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:12px;">Aucun élève présent</td></tr>';
+
+  const absTbody = document.getElementById('absentsTableBody');
+  absTbody.innerHTML = absents.map(a => `
+    <tr>
+      <td><span class="badge-carte-tag">N° ${escapeHtml(a.badgeNum)}</span></td>
+      <td><strong>${escapeHtml(a.nom)}</strong> ${escapeHtml(a.prenom)}</td>
+      <td><span class="badge-classe">${escapeHtml(a.classe || '-')}</span></td>
+      <td>📞 ${escapeHtml(a.contact || 'Non renseigné')}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" style="text-align:center;color:#15803d;font-weight:bold;padding:12px;">Félicitations, aucun absent !</td></tr>';
+
+  modal.classList.remove('hidden');
+}
+
+function closeSummaryModal() {
+  document.getElementById('sessionSummaryModal')?.classList.add('hidden');
+}
+
+
+// =====================================================================
+// 12. GÉNÉRATION PDF 1 : FICHE OFFICIELLE D'ÉMARGEMENT DU JOUR (A4)
+// =====================================================================
+
 window.downloadAttendancePDF = async function() {
   const currentAttendance = allAttendance[selectedDate] || {};
   const presents = students.filter(s => {
-    const sid = s.id || s.matricule;
-    return !!(currentAttendance[sid] || (s.matricule && currentAttendance[s.matricule]));
+    const sid = s.id || s.matricule || s.idCarte;
+    return !!(currentAttendance[sid] || (s.matricule && currentAttendance[s.matricule]) || (s.idCarte && currentAttendance[s.idCarte]));
   });
 
   if (presents.length === 0) {
@@ -903,40 +1168,30 @@ window.downloadAttendancePDF = async function() {
     return;
   }
 
-  if (!window.jspdf || !window.jspdf.jsPDF) {
+  if (!window.jspdf?.jsPDF) {
     alert("Bibliothèque PDF en cours de chargement...");
     return;
   }
 
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-  // Cadre d'en-tête
+  // En-tête officiel
   doc.setFillColor(248, 250, 252);
   doc.rect(10, 10, 190, 42, 'F');
   doc.setDrawColor(226, 232, 240);
   doc.rect(10, 10, 190, 42, 'D');
 
-  // Chargement des images de logo (Club à gauche, Lycée à droite)
   try {
     const clubImg = await loadImage('./assets/images/logo_club.jpeg');
     doc.addImage(clubImg, 'JPEG', 13, 13, 16, 16);
-  } catch (e) {
-    console.warn('Logo club non chargé', e);
-  }
+  } catch (e) {}
 
   try {
     const lyceeImg = await loadImage('./assets/images/logo_lycee.png');
     doc.addImage(lyceeImg, 'PNG', 171, 13, 16, 16);
-  } catch (e) {
-    console.warn('Logo lycee non chargé', e);
-  }
+  } catch (e) {}
 
-  // Textes officiels
   doc.setTextColor(15, 23, 42);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
@@ -965,7 +1220,6 @@ window.downloadAttendancePDF = async function() {
   doc.setFontSize(7.5);
   doc.text("FICHE OFFICIELLE", 53, 44.2, { align: 'center' });
 
-  // Titre Fiche
   doc.setTextColor(15, 23, 42);
   doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
@@ -974,13 +1228,13 @@ window.downloadAttendancePDF = async function() {
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 116, 139);
-  doc.text(`Séance d'activité du : ${selectedDate} • Présents : ${presents.length} / ${students.length}`, 105, 65, { align: 'center' });
+  doc.text(`Séance du : ${selectedDate} • Présents : ${presents.length} / ${students.length}`, 105, 65, { align: 'center' });
 
-  // Tableau
   const tableData = presents.map((s, index) => {
     const ageCalc = calculateAge(s);
     return [
       index + 1,
+      s.idCarte || '-',
       s.matricule || '-',
       `${s.nom} ${s.prenom}`,
       s.classe,
@@ -993,32 +1247,24 @@ window.downloadAttendancePDF = async function() {
 
   doc.autoTable({
     startY: 72,
-    head: [['N°', 'Matricule', 'Nom & Prénoms', 'Classe', 'Sexe', 'Âge', 'Contact', 'Émargement']],
+    head: [['N°', 'N° Carte', 'Matricule', 'Nom & Prénoms', 'Classe', 'Sexe', 'Âge', 'Contact', 'Statut']],
     body: tableData,
     theme: 'grid',
-    headStyles: {
-      fillColor: [15, 23, 42],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      fontSize: 8.5
-    },
-    styles: {
-      fontSize: 8,
-      cellPadding: 2.5
-    },
+    headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8 },
+    styles: { fontSize: 7.5, cellPadding: 2.2 },
     columnStyles: {
-      0: { cellWidth: 8, halign: 'center' },
-      1: { cellWidth: 24 },
-      2: { cellWidth: 54 },
-      3: { cellWidth: 16, halign: 'center' },
-      4: { cellWidth: 12, halign: 'center' },
-      5: { cellWidth: 16, halign: 'center' },
-      6: { cellWidth: 32 },
-      7: { cellWidth: 26, halign: 'center', fontStyle: 'bold', textColor: [5, 150, 105] }
+      0: { cellWidth: 7, halign: 'center' },
+      1: { cellWidth: 16, halign: 'center', fontStyle: 'bold' },
+      2: { cellWidth: 22 },
+      3: { cellWidth: 48 },
+      4: { cellWidth: 14, halign: 'center' },
+      5: { cellWidth: 10, halign: 'center' },
+      6: { cellWidth: 14, halign: 'center' },
+      7: { cellWidth: 32 },
+      8: { cellWidth: 22, halign: 'center', fontStyle: 'bold', textColor: [5, 150, 105] }
     }
   });
 
-  // Pied de page
   const finalY = doc.lastAutoTable.finalY + 12;
   doc.setFontSize(8.5);
   doc.setTextColor(15, 23, 42);
@@ -1029,75 +1275,168 @@ window.downloadAttendancePDF = async function() {
   doc.setTextColor(100, 116, 139);
   doc.text("Signature et cachet :", 140, finalY + 4);
 
-  // Téléchargement
   doc.save(`presence_club_robotique_${selectedDate}.pdf`);
   showToast('Fiche PDF générée et téléchargée.');
 };
 
+
+// =====================================================================
+// 13. GÉNÉRATION PDF 2 : 100 BADGES ÉLÈVES (5 PAR LIGNE) + BADGES PROFS
+// =====================================================================
+
 window.downloadStudentQRCodesPDF = async function() {
-  if (students.length === 0) {
-    alert("Aucun élève n'est inscrit : impossible de générer les badges.");
-    return;
-  }
   if (!window.jspdf?.jsPDF || typeof window.QRCode !== 'function') {
-    alert("Les bibliothèques PDF ou QR ne sont pas disponibles. Vérifiez que les fichiers de l'application sont présents.");
+    alert("Les bibliothèques PDF ou QR Code sont en cours de chargement...");
     return;
   }
+
+  showToast("Génération des 100 badges élèves + badges professeurs...");
 
   const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const columns = 2;
-  const rows = 3;
-  const cardWidth = 94;
-  const cardHeight = 88;
-  const gapX = 4;
-  const gapY = 4;
-  const marginX = 9;
-  const marginY = 10;
-  const qrSize = 46;
+  // Format A4 Paysage (Landscape) : Largeur 297mm, Hauteur 210mm
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-  try {
-    for (let index = 0; index < students.length; index += 1) {
-      const student = students[index];
-      const indexOnPage = index % (columns * rows);
-      if (index > 0 && indexOnPage === 0) doc.addPage();
+  const COLS = 5;      // 5 BADGES PAR LIGNE
+  const ROWS = 4;      // 4 LIGNES PAR PAGE = 20 BADGES PAR PAGE
+  const BADGES_PER_PAGE = COLS * ROWS;
 
-      const column = indexOnPage % columns;
-      const row = Math.floor(indexOnPage / columns);
-      const x = marginX + column * (cardWidth + gapX);
-      const y = marginY + row * (cardHeight + gapY);
-      const qrDataUrl = await createStudentQRDataUrl(`smartpresence:${student.id}`);
+  const cardWidth = 54;    // 54mm de large
+  const cardHeight = 44;   // 44mm de haut
+  const gapX = 3.5;
+  const gapY = 3.5;
+  const marginX = 7;
+  const marginY = 8;
+  const qrSize = 22;       // 22mm x 22mm pour une lecture ultra-rapide
 
-      doc.setDrawColor(203, 213, 225);
-      doc.setLineWidth(0.4);
-      doc.roundedRect(x, y, cardWidth, cardHeight, 3, 3);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9);
-      doc.setTextColor(15, 23, 42);
-      const nameLines = doc.splitTextToSize(`${student.nom} ${student.prenom}`, cardWidth - 8).slice(0, 2);
-      doc.text(nameLines, x + cardWidth / 2, y + 8, { align: 'center' });
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(71, 85, 105);
-      doc.text('CLUB ROBOTIQUE • LYCÉE MODERNE 1 D’ABOBO', x + cardWidth / 2, y + 17, { align: 'center' });
-
-      doc.addImage(qrDataUrl, 'JPEG', x + (cardWidth - qrSize) / 2, y + 20, qrSize, qrSize);
-
-      doc.setFontSize(8);
-      doc.setTextColor(15, 23, 42);
-      doc.text(`Classe : ${student.classe || '-'}`, x + cardWidth / 2, y + 71, { align: 'center' });
-      doc.text(`Matricule : ${student.matricule || student.id}`, x + cardWidth / 2, y + 77, { align: 'center' });
-      doc.setFontSize(6.5);
-      doc.setTextColor(100, 116, 139);
-      doc.text('Badge personnel de pointage', x + cardWidth / 2, y + 83, { align: 'center' });
+  // Construction de la liste des 100 badges élèves
+  const badgeList = [];
+  for (let i = 0; i < 100; i++) {
+    const existing = students[i];
+    if (existing) {
+      const badgeId = existing.idCarte || String(i + 1).padStart(4, '0');
+      badgeList.push({
+        badgeNum: badgeId,
+        nom: existing.nom,
+        prenom: existing.prenom,
+        classe: existing.classe || '-',
+        qrValue: `smartpresence:${badgeId}`
+      });
+    } else {
+      const emptyNum = String(i + 1).padStart(4, '0');
+      badgeList.push({
+        badgeNum: emptyNum,
+        nom: 'CARTE MEMBRE',
+        prenom: 'Élève à assigner',
+        classe: 'Club Robotique',
+        qrValue: `smartpresence:${emptyNum}`
+      });
     }
-
-    doc.save(`badges_qr_club_robotique_${getTodayDateString()}.pdf`);
-    showToast(`${students.length} badges QR générés dans un PDF.`);
-  } catch (error) {
-    console.error('Erreur de génération des badges QR :', error);
-    alert("Une erreur est survenue lors de la génération des badges QR. Vérifiez les bibliothèques locales de l'application.");
   }
+
+  // --- PAGES 1 À 5 : LES 100 BADGES ÉLÈVES (20 par page) ---
+  for (let i = 0; i < badgeList.length; i++) {
+    const b = badgeList[i];
+    const indexOnPage = i % BADGES_PER_PAGE;
+    if (i > 0 && indexOnPage === 0) doc.addPage('a4', 'landscape');
+
+    const col = indexOnPage % COLS;
+    const row = Math.floor(indexOnPage / COLS);
+    const x = marginX + col * (cardWidth + gapX);
+    const y = marginY + row * (cardHeight + gapY);
+
+    const qrDataUrl = await createStudentQRDataUrl(b.qrValue);
+
+    // Cadre du badge
+    doc.setDrawColor(203, 213, 225);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(x, y, cardWidth, cardHeight, 2, 2);
+
+    // En-tête bandeau bleu nuit
+    doc.setFillColor(15, 23, 42);
+    doc.rect(x, y, cardWidth, 6, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
+    doc.setTextColor(255, 255, 255);
+    doc.text("CLUB ROBOTIQUE • LM 1 ABOBO", x + cardWidth / 2, y + 4.2, { align: 'center' });
+
+    // NUMÉRO DU BADGE (EN GRAND & EN ÉVIDENCE)
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(2, 132, 199);
+    doc.text(`N° ${b.badgeNum}`, x + cardWidth / 2, y + 10.5, { align: 'center' });
+
+    // QR Code centré
+    doc.addImage(qrDataUrl, 'JPEG', x + (cardWidth - qrSize) / 2, y + 11.5, qrSize, qrSize);
+
+    // NOM & PRÉNOM DE L'ÉLÈVE (EN BAS, BIEN LISIBLE)
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(15, 23, 42);
+    const fullName = `${b.nom} ${b.prenom}`;
+    const truncatedName = fullName.length > 22 ? fullName.slice(0, 20) + "..." : fullName;
+    doc.text(truncatedName, x + cardWidth / 2, y + 37.5, { align: 'center' });
+
+    // Classe
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text(`Classe : ${b.classe}`, x + cardWidth / 2, y + 41.5, { align: 'center' });
+  }
+
+  // --- PAGE 6 : LES BADGES PROFESSEURS (PASS ENCADREURS) ---
+  doc.addPage('a4', 'landscape');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(14);
+  doc.setTextColor(15, 23, 42);
+  doc.text("BADGES PROFESSEURS — OUVERTURE & CLÔTURE DE SÉANCE", 148.5, 18, { align: 'center' });
+
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 116, 139);
+  doc.text("Le professeur scanne son badge pour ouvrir la séance, puis le re-scanne pour la clôturer.", 148.5, 25, { align: 'center' });
+
+  for (let tIdx = 0; tIdx < TEACHERS.length; tIdx++) {
+    const prof = TEACHERS[tIdx];
+    const profCardWidth = 75;
+    const profCardHeight = 65;
+    const profQrSize = 34;
+    const px = 55 + tIdx * (profCardWidth + 25);
+    const py = 45;
+
+    const profQrUrl = await createStudentQRDataUrl(prof.code);
+
+    // Cadre doré/prestige
+    doc.setDrawColor(217, 119, 6);
+    doc.setLineWidth(0.8);
+    doc.roundedRect(px, py, profCardWidth, profCardHeight, 3, 3);
+
+    doc.setFillColor(217, 119, 6);
+    doc.rect(px, py, profCardWidth, 9, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text("PASS ENCADREUR OFFICIEL", px + profCardWidth / 2, py + 6, { align: 'center' });
+
+    doc.addImage(profQrUrl, 'JPEG', px + (profCardWidth - profQrSize) / 2, py + 12, profQrSize, profQrSize);
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(15, 23, 42);
+    doc.text(prof.nom, px + profCardWidth / 2, py + 52, { align: 'center' });
+
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 116, 139);
+    doc.text(prof.role, px + profCardWidth / 2, py + 57, { align: 'center' });
+
+    doc.setFontSize(6.5);
+    doc.setTextColor(217, 119, 6);
+    doc.text("Scanner pour Ouvrir / Fermer la séance", px + profCardWidth / 2, py + 61.5, { align: 'center' });
+  }
+
+  doc.save(`planche_100_badges_eleves_et_profs_${selectedDate}.pdf`);
+  showToast("✅ Planche de 100 badges élèves + badges profs téléchargée !");
 };
 
 function createStudentQRDataUrl(value) {
@@ -1115,9 +1454,7 @@ function createStudentQRDataUrl(value) {
         correctLevel: QRCode.CorrectLevel.H
       });
       const canvas = container.querySelector('canvas');
-      if (!canvas) {
-        throw new Error('Le générateur QR n’a pas produit de canevas.');
-      }
+      if (!canvas) throw new Error('Le générateur QR n’a pas produit de canevas.');
       const dataUrl = canvas.toDataURL('image/jpeg', 0.96);
       container.remove();
       resolve(dataUrl);
@@ -1128,139 +1465,49 @@ function createStudentQRDataUrl(value) {
   });
 }
 
-let html5QrCodeScanner = null;
-let scannerStartPromise = null;
-let lastScannedCode = '';
-let lastScanAt = 0;
 
-function playSuccessBeep() {
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return;
+// =====================================================================
+// 14. AUTO-UPDATER GITHUB RELEASES
+// =====================================================================
+
+async function checkForAppUpdates() {
+  if (!navigator.onLine) return;
 
   try {
-    const audioContext = new AudioContextClass();
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
-    gain.gain.setValueAtTime(0.15, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.18);
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + 0.18);
-    window.setTimeout(() => audioContext.close(), 250);
-  } catch (error) {
-    console.warn('Bip sonore indisponible :', error);
-  }
-}
+    const res = await fetch('/api/check-update');
+    if (!res.ok) return;
+    const data = await res.json();
 
-function handleScanSuccess(decodedText) {
-  const rawCode = String(decodedText || '').trim();
-  if (!rawCode) return;
-
-  const now = Date.now();
-  if (rawCode === lastScannedCode && now - lastScanAt < 1500) return;
-  lastScannedCode = rawCode;
-  lastScanAt = now;
-
-  const tokenPrefix = 'smartpresence:';
-  const studentId = rawCode.toLowerCase().startsWith(tokenPrefix)
-    ? rawCode.slice(tokenPrefix.length).trim()
-    : '';
-  let student = studentId ? students.find(item => item.id === studentId) : null;
-
-  if (!student && !studentId) {
-    const matchingStudents = students.filter(item =>
-      String(item.matricule || '').toLowerCase() === rawCode.toLowerCase()
-    );
-    if (matchingStudents.length === 1) student = matchingStudents[0];
-    if (matchingStudents.length > 1) {
-      setScannerFeedback('Ce matricule est partagé par plusieurs élèves. Utilisez leur badge QR personnel.', 'error');
-      return;
+    if (data.update_available) {
+      const banner = document.getElementById('updateBanner');
+      const tag = document.getElementById('latestVersionTag');
+      if (tag) tag.textContent = `v${data.latest_version}`;
+      if (banner) banner.classList.remove('hidden');
     }
+  } catch (err) {
+    console.log("Vérification mise à jour ignorée (hors-ligne ou non supporté).");
   }
-
-  if (!student) {
-    setScannerFeedback(`Aucun élève trouvé pour le code : ${rawCode}`, 'error');
-    return;
-  }
-
-  if (!allAttendance[selectedDate]) allAttendance[selectedDate] = {};
-  const id = student.id || student.matricule;
-  if (allAttendance[selectedDate][id]) {
-    setScannerFeedback(`${student.nom} ${student.prenom} est déjà pointé(e) présent(e).`, 'success');
-    return;
-  }
-
-  allAttendance[selectedDate][id] = true;
-  saveAttendanceLocally();
-  playSuccessBeep();
-  setScannerFeedback(`${student.nom} ${student.prenom} pointé(e) PRÉSENT !`, 'success');
 }
 
-function setScannerFeedback(message, state = '') {
-  const feedback = document.getElementById('scannerFeedback');
-  if (!feedback) return;
-  feedback.className = `scanner-feedback${state ? ` ${state}` : ''}`;
-  feedback.textContent = message;
-}
-
-async function startScanner() {
-  const modal = document.getElementById('qrModal');
-  if (!modal) return;
-  if (typeof window.Html5Qrcode !== 'function') {
-    setScannerFeedback("La bibliothèque de scan n'est pas disponible. Vérifiez les fichiers de l'application.", 'error');
-    modal.classList.remove('hidden');
-    return;
+async function launchAutoUpdate() {
+  const btn = document.getElementById('btnApplyUpdate');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "⏳ Téléchargement & Installation...";
   }
 
-  modal.classList.remove('hidden');
-  setScannerFeedback('Autorisez l’accès à la caméra et présentez un badge QR...');
-  if (scannerStartPromise) return;
-  if (!html5QrCodeScanner) {
-    const formats = window.Html5QrcodeSupportedFormats;
-    const supportedFormats = formats ? [
-      formats.QR_CODE,
-      formats.CODE_128,
-      formats.CODE_39,
-      formats.EAN_13,
-      formats.EAN_8,
-      formats.UPC_A,
-      formats.UPC_E,
-      formats.ITF
-    ].filter(format => format !== undefined) : undefined;
-    html5QrCodeScanner = new Html5Qrcode('qr-reader', supportedFormats ? { formatsToSupport: supportedFormats } : {});
+  try {
+    await fetch('/api/apply-update');
+    showToast("Installation en cours... L'application va redémarrer.");
+  } catch (err) {
+    alert("Erreur lors de la mise à jour. Relancez manuellement l'application.");
   }
-  if (html5QrCodeScanner.isScanning) return;
-
-  scannerStartPromise = html5QrCodeScanner.start(
-    { facingMode: 'environment' },
-    { fps: 10, qrbox: { width: 250, height: 250 } },
-    handleScanSuccess
-  ).catch(error => {
-    console.error('Erreur d’accès à la caméra :', error);
-    setScannerFeedback('Impossible d’accéder à la webcam. Vérifiez les autorisations et utilisez localhost ou HTTPS.', 'error');
-  }).finally(() => {
-    scannerStartPromise = null;
-  });
-  await scannerStartPromise;
 }
 
-async function stopScanner() {
-  const modal = document.getElementById('qrModal');
-  if (scannerStartPromise) await scannerStartPromise;
-  if (html5QrCodeScanner?.isScanning) {
-    try {
-      await html5QrCodeScanner.stop();
-    } catch (error) {
-      console.error('Erreur lors de l’arrêt du scanner :', error);
-      setScannerFeedback('La caméra n’a pas pu être arrêtée correctement.', 'error');
-      return;
-    }
-  }
-  modal?.classList.add('hidden');
-}
+
+// =====================================================================
+// 15. FONCTIONS GLOBALES D'INTERFACE & DÉMARRAGE
+// =====================================================================
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -1289,46 +1536,10 @@ function showToast(message) {
   }, 3500);
 }
 
-// Démarrage de l'application
+// Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', initApp);
 
-// Vérification automatique des mises à jour au démarrage
-async function checkForAppUpdates() {
-  if (!navigator.onLine) return; // Ne tente rien si hors-ligne
-
-  try {
-    const res = await fetch('/api/check-update');
-    if (!res.ok) return;
-    const data = await res.json();
-
-    if (data.update_available) {
-      const banner = document.getElementById('updateBanner');
-      const tag = document.getElementById('latestVersionTag');
-      if (tag) tag.textContent = `v${data.latest_version}`;
-      if (banner) banner.classList.remove('hidden');
-    }
-  } catch (err) {
-    console.log("Vérification mise à jour ignorée (mode hors-ligne ou non supporté).");
-  }
-}
-
-// Déclenchement de la mise à jour en 1 clic
-async function launchAutoUpdate() {
-  const btn = document.getElementById('btnApplyUpdate');
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = "⏳ Téléchargement & Installation...";
-  }
-
-  try {
-    await fetch('/api/apply-update');
-    showToast("Installation en cours... L'application va redémarrer.");
-  } catch (err) {
-    alert("Erreur lors de la mise à jour. Relancez manuellement l'application.");
-  }
-}
-
-// Lancer la vérification 3 secondes après le chargement de la page
+// Lancement automatique du contrôle de mise à jour 3s après l'ouverture
 window.addEventListener('load', () => {
   setTimeout(checkForAppUpdates, 3000);
 });
