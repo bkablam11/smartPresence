@@ -1272,3 +1272,44 @@ header.app-header {
   margin-top: 15px;
   justify-content: flex-end;
 }
+
+/* Bouton WhatsApp individuel */
+.btn-wa {
+  background: #25D366;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity 0.2s;
+}
+
+.btn-wa:hover {
+  opacity: 0.9;
+}
+
+/* Bouton WhatsApp de groupe */
+.btn-wa-group {
+  background: linear-gradient(135deg, #25D366, #128C7E);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3);
+  transition: transform 0.15s ease;
+}
+
+.btn-wa-group:hover {
+  transform: translateY(-1px);
+}

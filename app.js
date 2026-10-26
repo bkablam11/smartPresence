@@ -8,10 +8,10 @@
 // 1. CONFIGURATION & ÉTAT GLOBAL DE L'APPLICATION
 // =====================================================================
 
-// URL officielle du script Google Apps Script déployé
+// URL officielle du Web Service Google Apps Script déployé
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiENiDA1uu4sbSV8dTHFCmMoWl4rv9RARnmrKlFClnoE88W_rra6pJH5LOyBZtCAf0jw/exec';
 
-// Badges officiels des professeurs encadreurs (Sécurité d'ouverture/fermeture)
+// Badges officiels des professeurs encadreurs (Sécurité d'ouverture / fermeture)
 const TEACHERS = [
   { id: "PROF-01", code: "smartpresence:prof:01", nom: "M. KABLAN", role: "Encadreur Principal" },
   { id: "PROF-02", code: "smartpresence:prof:02", nom: "ENCADREUR ATELIER", role: "Responsable Robotique" }
@@ -23,12 +23,16 @@ let selectedDate = getTodayDateString();
 let isOnline = navigator.onLine;
 let editingStudentId = null;
 
-// Gestion de la séance sécurisée par l'encadreur
+// Gestion de session sécurisée
 let isSessionOpen = false;
 let sessionOpenedBy = null;
 let sessionOpenedAt = null;
 
-// Scanner QR Code
+// File d'attente WhatsApp automatique
+let whatsappQueue = [];
+let currentQueueIndex = 0;
+
+// Scanner QR Code & Webcam
 let html5QrCodeScanner = null;
 let scannerStartPromise = null;
 let lastScannedCode = '';
@@ -108,7 +112,78 @@ function formatSinglePhone(phone) {
 
 
 // =====================================================================
-// 3. TRI, FUSION ET GESTION DES IDENTIFIANTS DE CARTES
+// 3. SIGNAUX SONORES & SYNTHÈSE VOCALE ROBOTIQUE
+// =====================================================================
+
+function speakVoice(text) {
+  if (!('speechSynthesis' in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'fr-FR';
+    utterance.rate = 1.05;
+    utterance.pitch = 1.0;
+    window.speechSynthesis.speak(utterance);
+  } catch (e) {
+    console.warn("Synthèse vocale indisponible :", e);
+  }
+}
+
+function playSuccessBeep() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.18);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.18);
+    setTimeout(() => audioCtx.close(), 250);
+  } catch (e) {}
+}
+
+function playAlertBeep() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.35);
+    setTimeout(() => audioCtx.close(), 400);
+  } catch (e) {}
+}
+
+function playTeacherBeep() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    [587.33, 880].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.12);
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime + i * 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.12 + 0.12);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime + i * 0.12);
+      osc.stop(audioCtx.currentTime + i * 0.12 + 0.12);
+    });
+    setTimeout(() => audioCtx.close(), 500);
+  } catch (e) {}
+}
+
+
+// =====================================================================
+// 4. TRI, FUSION ET GESTION DES IDENTIFIANTS
 // =====================================================================
 
 function sortStudents(list) {
@@ -127,7 +202,6 @@ function sortStudents(list) {
       };
     })
     .sort((a, b) => {
-      // Tri prioritaire par N° de Carte si existant, sinon alphabétique
       if (a.idCarte && b.idCarte) {
         const numA = parseInt(a.idCarte, 10);
         const numB = parseInt(b.idCarte, 10);
@@ -151,9 +225,7 @@ function sortStudents(list) {
     idCounts.set(baseId, suffix);
     usedIds.add(id);
 
-    // Attribution automatique d'un numéro de carte 0001 à 0100 si absent
     const idCarte = student.idCarte || String(index + 1).padStart(4, '0');
-
     return { ...student, id, idCarte };
   });
 }
@@ -213,7 +285,7 @@ function mergeStudents(currentList, incomingList) {
 
 
 // =====================================================================
-// 4. INITIALISATION & PERSISTANCE LOCALE (OFFLINE-FIRST)
+// 5. INITIALISATION & PERSISTANCE LOCALE (OFFLINE-FIRST)
 // =====================================================================
 
 function initApp() {
@@ -307,63 +379,6 @@ function saveStudentsLocally() {
 function saveAttendanceLocally() {
   localStorage.setItem('club_robotique_attendance', JSON.stringify(allAttendance));
   updateUI();
-}
-
-
-// =====================================================================
-// 5. SIGNAUX SONORES (WEB AUDIO API - 100% SANS FICHIER AUDIO EXTERNE)
-// =====================================================================
-
-function playSuccessBeep() {
-  try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.18);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.18);
-    setTimeout(() => audioCtx.close(), 250);
-  } catch (e) {}
-}
-
-function playAlertBeep() {
-  try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(220, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.35);
-    setTimeout(() => audioCtx.close(), 400);
-  } catch (e) {}
-}
-
-function playTeacherBeep() {
-  try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    [587.33, 880].forEach((freq, i) => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.12);
-      gain.gain.setValueAtTime(0.15, audioCtx.currentTime + i * 0.12);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.12 + 0.12);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start(audioCtx.currentTime + i * 0.12);
-      osc.stop(audioCtx.currentTime + i * 0.12 + 0.12);
-    });
-    setTimeout(() => audioCtx.close(), 500);
-  } catch (e) {}
 }
 
 
@@ -726,7 +741,7 @@ function renderStudentList() {
 
 
 // =====================================================================
-// 9. FORMULAIRES AJOUT, ÉDITION & SUPPRESSION ÉLÈVES
+// 9. FORMULAIRES AJOUT, ÉDITION & GESTION DES ÉLÈVES
 // =====================================================================
 
 function setupEventListeners() {
@@ -745,6 +760,7 @@ function setupEventListeners() {
       stopScanner();
       closeEditModal();
       closeSummaryModal();
+      closeWhatsAppAutoModal();
     }
   });
 
@@ -892,7 +908,8 @@ window.openEditModal = function(id) {
   if (editYearInput) {
     editYearInput.value = bYear || '';
     if (bYear && editYearPreview) {
-      editYearPreview.textContent = `→ ${curYear - bYear} ans en ${curYear}`;
+      const a = curYear - bYear;
+      editYearPreview.textContent = `→ ${a} ans en ${curYear}`;
     } else if (editYearPreview) {
       editYearPreview.textContent = '';
     }
@@ -940,7 +957,7 @@ window.exportJSON = function() {
 
 
 // =====================================================================
-// 10. WEBCAM SCANNER & WORKFLOW SÉCURISÉ (PROF -> ÉLÈVES -> PROF)
+// 10. SCANNER WEBCAM & WORKFLOW SÉCURISÉ (PROF -> ÉLÈVES -> PROF)
 // =====================================================================
 
 function setScannerFeedback(message, state = '') {
@@ -969,33 +986,42 @@ function handleScanSuccess(decodedText) {
     playTeacherBeep();
 
     if (!isSessionOpen) {
-      // OUVERTURE DE LA SÉANCE
+      // 🟢 OUVERTURE DE LA SÉANCE
       isSessionOpen = true;
       sessionOpenedBy = teacher;
       sessionOpenedAt = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
       updateSessionUI();
+      speakVoice(`Séance officiellement ouverte. Bienvenue ${teacher.nom}.`);
       setScannerFeedback(`🟢 Séance OUVERTE par ${teacher.nom} à ${sessionOpenedAt}. Les élèves peuvent pointer !`, 'success');
       showToast(`Séance ouverte par ${teacher.nom}`);
     } else {
-      // CLÔTURE DE LA SÉANCE
+      // 🛑 CLÔTURE DE LA SÉANCE
       isSessionOpen = false;
       const closedAt = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
       updateSessionUI();
+      speakVoice("Séance clôturée. Bilan disponible.");
       setScannerFeedback(`🛑 Séance CLÔTURÉE par ${teacher.nom} à ${closedAt}.`, 'success');
+      
       stopScanner();
-      openSummaryModal(); // Ouvre immédiatement le récapitulatif Présents vs Absents
+      openSummaryModal(); // Ouvre la fenêtre du bilan officiel
+
+      // Déclenche l'assistant d'envoi automatique WhatsApp aux parents d'absents après 1.5s
+      setTimeout(() => {
+        triggerAutoWhatsAppAlerts();
+      }, 1500);
     }
     return;
   }
 
-  // --- B. SI LA SÉANCE N'EST PAS OUVERTE PAR LE PROF, BLOCAGE ---
+  // --- B. SI LA SÉANCE N'EST PAS OUVERTE, BLOCAGE ---
   if (!isSessionOpen) {
     playAlertBeep();
+    speakVoice("Attention, la séance n'est pas encore ouverte.");
     setScannerFeedback("⚠️ Séance NON ouverte. L'encadreur doit d'abord scanner son badge prof !", 'error');
     return;
   }
 
-  // --- C. TRAITEMENT DE L'ÉLÈVE ---
+  // --- C. TRAITEMENT DU POINTAGE ÉLÈVE ---
   const tokenPrefix = 'smartpresence:';
   const cleanCode = rawCode.toLowerCase().startsWith(tokenPrefix)
     ? rawCode.slice(tokenPrefix.length).trim()
@@ -1009,6 +1035,7 @@ function handleScanSuccess(decodedText) {
 
   if (!student) {
     playAlertBeep();
+    speakVoice("Badge inconnu.");
     setScannerFeedback(`❌ Badge inconnu : ${cleanCode}`, 'error');
     return;
   }
@@ -1017,6 +1044,7 @@ function handleScanSuccess(decodedText) {
   const studentKey = student.id || student.matricule || student.idCarte;
 
   if (allAttendance[selectedDate][studentKey]) {
+    speakVoice(`${student.prenom} est déjà enregistré.`);
     setScannerFeedback(`ℹ️ ${student.nom} ${student.prenom} (N° ${student.idCarte || '-'}) est DÉJÀ présent(e).`, 'success');
     return;
   }
@@ -1024,6 +1052,7 @@ function handleScanSuccess(decodedText) {
   allAttendance[selectedDate][studentKey] = true;
   saveAttendanceLocally();
   playSuccessBeep();
+  speakVoice(`Présent ! Bienvenue ${student.prenom}.`);
   setScannerFeedback(`✅ [N° ${student.idCarte || '-'}] ${student.nom} ${student.prenom} marqué(e) PRÉSENT !`, 'success');
 }
 
@@ -1047,24 +1076,33 @@ async function startScanner() {
   if (scannerStartPromise) return;
 
   if (!html5QrCodeScanner) {
-    const formats = window.Html5QrcodeSupportedFormats;
-    const supportedFormats = formats ? [
-      formats.QR_CODE,
-      formats.CODE_128,
-      formats.CODE_39,
-      formats.EAN_13,
-      formats.EAN_8,
-      formats.UPC_A
-    ].filter(Boolean) : undefined;
-
-    html5QrCodeScanner = new Html5Qrcode('qr-reader', supportedFormats ? { formatsToSupport: supportedFormats } : {});
+    html5QrCodeScanner = new Html5Qrcode('qr-reader', {
+      experimentalFeatures: {
+        useBarCodeDetectorIfSupported: true // 🚀 Accélération matérielle native
+      }
+    });
   }
 
   if (html5QrCodeScanner.isScanning) return;
 
+  // Zone de détection souple (70% de la fenêtre de la caméra)
+  const qrboxFunction = function(viewfinderWidth, viewfinderHeight) {
+    const minEdgePercentage = 0.70;
+    const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+    const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
+    return {
+      width: qrboxSize,
+      height: qrboxSize
+    };
+  };
+
   scannerStartPromise = html5QrCodeScanner.start(
     { facingMode: 'environment' },
-    { fps: 10, qrbox: { width: 250, height: 250 } },
+    { 
+      fps: 15, // Plus fluide
+      qrbox: qrboxFunction,
+      aspectRatio: 1.0
+    },
     handleScanSuccess
   ).catch(error => {
     console.error('Erreur caméra :', error);
@@ -1092,7 +1130,7 @@ async function stopScanner() {
 
 
 // =====================================================================
-// 11. BILAN DE SÉANCE : LISTE DES PRÉSENTS ET DES ABSENTS
+// 11. BILAN DE SÉANCE : LISTE DES PRÉSENTS & ABSENTS
 // =====================================================================
 
 function openSummaryModal() {
@@ -1125,6 +1163,7 @@ function openSummaryModal() {
   document.getElementById('countAbsCol').textContent = absents.length;
   document.getElementById('summarySubtitle').textContent = `Séance du ${selectedDate} • Encadreur : ${sessionOpenedBy ? sessionOpenedBy.nom : 'M. KABLAN'}`;
 
+  // Tableau des présents
   const presTbody = document.getElementById('presentsTableBody');
   presTbody.innerHTML = presents.map(p => `
     <tr>
@@ -1134,13 +1173,20 @@ function openSummaryModal() {
     </tr>
   `).join('') || '<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:12px;">Aucun élève présent</td></tr>';
 
+  // Tableau des absents avec bouton WhatsApp individuel direct
   const absTbody = document.getElementById('absentsTableBody');
   absTbody.innerHTML = absents.map(a => `
     <tr>
       <td><span class="badge-carte-tag">N° ${escapeHtml(a.badgeNum)}</span></td>
       <td><strong>${escapeHtml(a.nom)}</strong> ${escapeHtml(a.prenom)}</td>
       <td><span class="badge-classe">${escapeHtml(a.classe || '-')}</span></td>
-      <td>📞 ${escapeHtml(a.contact || 'Non renseigné')}</td>
+      <td>
+        ${a.contact ? `
+          <button class="btn-wa" onclick="openWhatsAppParent('${escapeHtml(a.nom)}', '${escapeHtml(a.prenom)}', '${escapeHtml(a.classe)}', '${escapeHtml(a.contact)}')">
+            💬 WhatsApp
+          </button>
+        ` : '<span style="color:#94a3b8;font-size:0.75rem;">Pas de contact</span>'}
+      </td>
     </tr>
   `).join('') || '<tr><td colspan="4" style="text-align:center;color:#15803d;font-weight:bold;padding:12px;">Félicitations, aucun absent !</td></tr>';
 
@@ -1153,7 +1199,170 @@ function closeSummaryModal() {
 
 
 // =====================================================================
-// 12. GÉNÉRATION PDF 1 : FICHE OFFICIELLE D'ÉMARGEMENT DU JOUR (A4)
+// 12. MODULE WHATSAPP : PILOTE AUTOMATIQUE & NOTIFICATIONS PARENTS
+// =====================================================================
+
+function cleanPhoneNumberCI(phoneStr) {
+  if (!phoneStr) return null;
+  const first = phoneStr.split('/')[0].trim();
+  const digits = first.replace(/\D/g, '');
+
+  if (digits.length === 10) return `225${digits}`;
+  if (digits.length === 9) return `2250${digits}`;
+  if (digits.startsWith('225') && digits.length === 13) return digits;
+  return null;
+}
+
+function openWhatsAppParent(studentNom, studentPrenom, studentClasse, parentPhone) {
+  const cleanPhone = cleanPhoneNumberCI(parentPhone);
+  if (!cleanPhone) {
+    alert(`Numéro de téléphone invalide pour ${studentNom} ${studentPrenom}`);
+    return;
+  }
+
+  const message = encodeURIComponent(
+    `Bonjour M./Mme,\n\n` +
+    `Le Club Robotique du Lycée Moderne 1 d'Abobo vous informe que votre enfant ${studentNom} ${studentPrenom} (${studentClasse}) était absent(e) à la séance d'atelier du ${selectedDate}.\n\n` +
+    `Merci de bien vouloir justifier son absence.\n` +
+    `Cordialement,\nL'Encadreur du Club Robotique.`
+  );
+
+  window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+}
+
+function triggerAutoWhatsAppAlerts() {
+  const currentAtt = allAttendance[selectedDate] || {};
+
+  whatsappQueue = students.filter(s => {
+    const isPresent = !!(currentAtt[s.id] || currentAtt[s.matricule] || currentAtt[s.idCarte]);
+    const hasPhone = !!cleanPhoneNumberCI(s.contact);
+    return !isPresent && hasPhone;
+  });
+
+  if (whatsappQueue.length === 0) {
+    showToast("ℹ️ Aucun absent à notifier sur WhatsApp (ou aucun numéro renseigné).");
+    return;
+  }
+
+  currentQueueIndex = 0;
+  showWhatsAppAutoModal();
+}
+
+function showWhatsAppAutoModal() {
+  let modal = document.getElementById('waAutoModal');
+
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'waAutoModal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content" style="max-width: 480px; text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📲</div>
+        <h3 style="margin-bottom: 0.5rem; color: #0f172a;">Alertes WhatsApp Automatiques</h3>
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+          La séance est clôturée. L'assistant va ouvrir WhatsApp pour chaque parent d'absent.
+        </p>
+
+        <div style="background: #f1f5f9; padding: 12px; border-radius: 12px; margin-bottom: 1.25rem;">
+          <div style="font-size: 0.75rem; font-weight: 700; color: #0284c7; text-transform: uppercase;" id="waQueueStep">
+            ÉLÈVE 1 SUR 5
+          </div>
+          <div style="font-size: 1.1rem; font-weight: 800; color: #0f172a; margin: 4px 0;" id="waStudentName">
+            NOM PRÉNOM
+          </div>
+          <div style="font-size: 0.8rem; color: #64748b;" id="waStudentMeta">
+            Classe : 6e 6 • Parent : 0707607293
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button id="btnSendCurrentWa" class="btn-wa-group" style="flex: 2;" onclick="sendCurrentQueueItem()">
+            💬 Ouvrir WhatsApp (<span id="btnWaIndex">1</span>/<span id="btnWaTotal">5</span>)
+          </button>
+          <button class="btn-secondary" style="flex: 1;" onclick="skipCurrentQueueItem()">
+            Ignorer
+          </button>
+          <button class="btn-secondary" style="background:#fee2e2; color:#b91c1c; border-color:#fca5a5;" onclick="closeWhatsAppAutoModal()">
+            Arrêter
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  updateWhatsAppAutoUI();
+  modal.classList.remove('hidden');
+}
+
+function updateWhatsAppAutoUI() {
+  if (currentQueueIndex >= whatsappQueue.length) {
+    closeWhatsAppAutoModal();
+    showToast("✅ Tous les parents d'absents ont été notifiés sur WhatsApp !");
+    speakVoice("Tous les parents d'absents ont été notifiés.");
+    return;
+  }
+
+  const s = whatsappQueue[currentQueueIndex];
+  document.getElementById('waQueueStep').textContent = `ÉLÈVE ${currentQueueIndex + 1} SUR ${whatsappQueue.length}`;
+  document.getElementById('waStudentName').textContent = `${s.nom} ${s.prenom}`;
+  document.getElementById('waStudentMeta').textContent = `Classe : ${s.classe || '-'} • Contact : ${s.contact}`;
+  document.getElementById('btnWaIndex').textContent = currentQueueIndex + 1;
+  document.getElementById('btnWaTotal').textContent = whatsappQueue.length;
+}
+
+function sendCurrentQueueItem() {
+  if (currentQueueIndex >= whatsappQueue.length) return;
+  const s = whatsappQueue[currentQueueIndex];
+  openWhatsAppParent(s.nom, s.prenom, s.classe, s.contact);
+  currentQueueIndex++;
+  updateWhatsAppAutoUI();
+}
+
+function skipCurrentQueueItem() {
+  currentQueueIndex++;
+  updateWhatsAppAutoUI();
+}
+
+function closeWhatsAppAutoModal() {
+  document.getElementById('waAutoModal')?.classList.add('hidden');
+}
+
+function shareRecapToWhatsAppGroup() {
+  const currentAtt = allAttendance[selectedDate] || {};
+  const presents = students.filter(s => currentAtt[s.id] || currentAtt[s.matricule] || currentAtt[s.idCarte]);
+  const absents = students.filter(s => !currentAtt[s.id] && !currentAtt[s.matricule] && !currentAtt[s.idCarte]);
+  const total = students.length;
+  const rate = total > 0 ? Math.round((presents.length / total) * 100) : 0;
+
+  let text = `🤖 *CLUB ROBOTIQUE — LYCÉE MODERNE 1 D'ABOBO*\n`;
+  text += `📅 *Compte-rendu de séance :* ${selectedDate}\n`;
+  text += `────────────────────\n`;
+  text += `📊 *Présents :* ${presents.length} / ${total} (${rate}%)\n`;
+  text += `❌ *Absents :* ${absents.length}\n\n`;
+
+  if (absents.length > 0) {
+    text += `*Liste des élèves absents :*\n`;
+    absents.forEach((a, i) => {
+      text += `${i + 1}. ${a.nom} ${a.prenom} (${a.classe})\n`;
+    });
+  } else {
+    text += `🎉 Félicitations : 100% de présence aujourd'hui !\n`;
+  }
+
+  text += `\n_L'Encadreur du Club Robotique — DRENA Abidjan 4_`;
+
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("📋 Texte copié ! Ouverture de WhatsApp...");
+    window.open("https://web.whatsapp.com", "_blank");
+  }).catch(() => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  });
+}
+
+
+// =====================================================================
+// 13. GÉNÉRATION PDF 1 : FICHE OFFICIELLE D'ÉMARGEMENT DU JOUR (A4)
 // =====================================================================
 
 window.downloadAttendancePDF = async function() {
@@ -1176,7 +1385,6 @@ window.downloadAttendancePDF = async function() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-  // En-tête officiel
   doc.setFillColor(248, 250, 252);
   doc.rect(10, 10, 190, 42, 'F');
   doc.setDrawColor(226, 232, 240);
@@ -1281,7 +1489,7 @@ window.downloadAttendancePDF = async function() {
 
 
 // =====================================================================
-// 13. GÉNÉRATION PDF 2 : 100 BADGES ÉLÈVES (5 PAR LIGNE) + BADGES PROFS
+// 14. GÉNÉRATION PDF 2 : 100 BADGES ÉLÈVES (5 PAR LIGNE) + BADGES PROFS
 // =====================================================================
 
 window.downloadStudentQRCodesPDF = async function() {
@@ -1293,7 +1501,6 @@ window.downloadStudentQRCodesPDF = async function() {
   showToast("Génération des 100 badges élèves + badges professeurs...");
 
   const { jsPDF } = window.jspdf;
-  // Format A4 Paysage (Landscape) : Largeur 297mm, Hauteur 210mm
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
   const COLS = 5;      // 5 BADGES PAR LIGNE
@@ -1306,9 +1513,8 @@ window.downloadStudentQRCodesPDF = async function() {
   const gapY = 3.5;
   const marginX = 7;
   const marginY = 8;
-  const qrSize = 22;       // 22mm x 22mm pour une lecture ultra-rapide
+  const qrSize = 22;       // 22mm x 22mm
 
-  // Construction de la liste des 100 badges élèves
   const badgeList = [];
   for (let i = 0; i < 100; i++) {
     const existing = students[i];
@@ -1346,12 +1552,10 @@ window.downloadStudentQRCodesPDF = async function() {
 
     const qrDataUrl = await createStudentQRDataUrl(b.qrValue);
 
-    // Cadre du badge
     doc.setDrawColor(203, 213, 225);
     doc.setLineWidth(0.3);
     doc.roundedRect(x, y, cardWidth, cardHeight, 2, 2);
 
-    // En-tête bandeau bleu nuit
     doc.setFillColor(15, 23, 42);
     doc.rect(x, y, cardWidth, 6, 'F');
     doc.setFont('helvetica', 'bold');
@@ -1359,16 +1563,13 @@ window.downloadStudentQRCodesPDF = async function() {
     doc.setTextColor(255, 255, 255);
     doc.text("CLUB ROBOTIQUE • LM 1 ABOBO", x + cardWidth / 2, y + 4.2, { align: 'center' });
 
-    // NUMÉRO DU BADGE (EN GRAND & EN ÉVIDENCE)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9.5);
     doc.setTextColor(2, 132, 199);
     doc.text(`N° ${b.badgeNum}`, x + cardWidth / 2, y + 10.5, { align: 'center' });
 
-    // QR Code centré
     doc.addImage(qrDataUrl, 'JPEG', x + (cardWidth - qrSize) / 2, y + 11.5, qrSize, qrSize);
 
-    // NOM & PRÉNOM DE L'ÉLÈVE (EN BAS, BIEN LISIBLE)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
     doc.setTextColor(15, 23, 42);
@@ -1376,14 +1577,13 @@ window.downloadStudentQRCodesPDF = async function() {
     const truncatedName = fullName.length > 22 ? fullName.slice(0, 20) + "..." : fullName;
     doc.text(truncatedName, x + cardWidth / 2, y + 37.5, { align: 'center' });
 
-    // Classe
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(6.5);
     doc.setTextColor(100, 116, 139);
     doc.text(`Classe : ${b.classe}`, x + cardWidth / 2, y + 41.5, { align: 'center' });
   }
 
-  // --- PAGE 6 : LES BADGES PROFESSEURS (PASS ENCADREURS) ---
+  // --- PAGE 6 : LES BADGES PROFESSEURS ---
   doc.addPage('a4', 'landscape');
 
   doc.setFont('helvetica', 'bold');
@@ -1406,7 +1606,6 @@ window.downloadStudentQRCodesPDF = async function() {
 
     const profQrUrl = await createStudentQRDataUrl(prof.code);
 
-    // Cadre doré/prestige
     doc.setDrawColor(217, 119, 6);
     doc.setLineWidth(0.8);
     doc.roundedRect(px, py, profCardWidth, profCardHeight, 3, 3);
@@ -1467,7 +1666,7 @@ function createStudentQRDataUrl(value) {
 
 
 // =====================================================================
-// 14. AUTO-UPDATER GITHUB RELEASES
+// 15. AUTO-UPDATER GITHUB RELEASES
 // =====================================================================
 
 async function checkForAppUpdates() {
@@ -1506,7 +1705,7 @@ async function launchAutoUpdate() {
 
 
 // =====================================================================
-// 15. FONCTIONS GLOBALES D'INTERFACE & DÉMARRAGE
+// 16. FONCTIONS GLOBALES D'INTERFACE & DÉMARRAGE
 // =====================================================================
 
 function loadImage(src) {
@@ -1539,7 +1738,7 @@ function showToast(message) {
 // Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', initApp);
 
-// Lancement automatique du contrôle de mise à jour 3s après l'ouverture
+// Contrôle automatique des mises à jour 3 secondes après ouverture
 window.addEventListener('load', () => {
   setTimeout(checkForAppUpdates, 3000);
 });
