@@ -132,7 +132,7 @@ Pour voir vos modifications instantanément à l'écran sans que le navigateur n
      python apps.py
      ```
 4. **Si vous avez modifié `Code.gs` :**
-   Copiez le fichier dans Google Apps Script, enregistrez, puis déployez une nouvelle version du script pour conserver l'identifiant unique dans les onglets Élèves et Détail_Appels.
+   Copiez le fichier dans Google Apps Script, enregistrez, puis déployez une nouvelle version du script. La synchronisation conserve `ID Carte` et `ID Élève` séparément, et met à jour les onglets `Élèves`, `Présences` et `Détail_Appels`.
 
 ---
 
@@ -141,11 +141,17 @@ Pour voir vos modifications instantanément à l'écran sans que le navigateur n
 Le classeur officiel est structuré selon 3 onglets synchronisés en temps réel :
 
 1. **`Élèves` (Registre officiel)** :
-   - Colonnes : `N°` | `Matricule` | `Nom` | `Prénom` | `Sexe` | `Âge` | `Classe` | `Contact Parents` | `Statut` | `ID Élève` (identifiant technique unique)
+   - Colonnes : `N°` | `ID Carte` | `Matricule` | `Nom` | `Prénom` | `Sexe` | `Âge` | `Classe` | `Contact Parents` | `Statut` | `ID Élève` (identifiant technique unique)
 2. **`Présences` (Historique des séances)** :
    - Date, Inscrits, Présents, Absents, Taux de présence en %.
 3. **`Détail_Appels` (Traçabilité complète)** :
-   - Date & Heure du pointage, Matricule, Nom, Prénom, Statut (Présent / Absent), ID Élève unique.
+   - `Date Séance` | `Matricule` | `Nom` | `Prénom` | `Classe` | `Statut Présence` | `Horodatage Enregistrement` | `ID Élève`.
+
+Les identifiants de carte manquants ou répétés sont rendus uniques lors de la lecture ou de la synchronisation, sans réutiliser un numéro déjà attribué. Après une réparation de doublon, régénérez les badges QR pour que les cartes imprimées correspondent au registre.
+
+La fonction `reparerEtFormaterFeuille()` conserve les données reconnues, remet les colonnes au bon format et crée une copie horodatée avant correction. La fonction `restaurerListeOfficielle69()` (nom historique) remplace le registre par les 27 élèves présents de la liste officielle intégrée au script. Elle demande confirmation et crée une copie horodatée avant remplacement.
+
+Le générateur PDF produit une planche de 150 cartes numérotées. Si une carte QR libre (`smartpresence:0001` à `smartpresence:0150`) est scannée pendant une séance ouverte et n'est pas encore dans la liste, une fiche provisoire est créée automatiquement, enregistrée localement et pointée présente. Complétez ensuite son nom et ses informations, puis synchronisez avec Google Sheets.
 
 ---
 

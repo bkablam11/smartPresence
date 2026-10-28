@@ -468,11 +468,16 @@ window.syncToGoogleSheet = async function() {
       timestamp: new Date().toISOString()
     };
 
-    await fetch(SCRIPT_URL, {
+    const response = await fetch(SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     });
+    if (!response.ok) throw new Error(`Erreur réseau HTTP : ${response.status}`);
+    const result = await response.json();
+    if (result.status !== 'success') {
+      throw new Error(result.message || 'Google Sheets a refusé la synchronisation.');
+    }
 
     const nowFormatted = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
     localStorage.setItem('club_robotique_last_sync', `Aujourd'hui à ${nowFormatted}`);
@@ -484,7 +489,7 @@ window.syncToGoogleSheet = async function() {
 
   } catch (err) {
     console.error('Erreur synchro :', err);
-    showToast('Envoi transmis vers Google Sheets.');
+    showToast(`❌ Synchronisation impossible : ${err.message || 'erreur inconnue'}`);
   } finally {
     if (btnSync) {
       btnSync.disabled = false;
@@ -723,7 +728,7 @@ function renderStudentList() {
             <div class="student-meta">
               <span class="badge-carte-tag">N° ${escapeHtml(s.idCarte || '-')}</span>
               <span class="badge-classe">${escapeHtml(s.classe)}</span>
-              <span>${s.sexe === 'F' ? '👧 Fille' : '👦 Garçon'}</span>
+              <span>${s.sexe === 'F' ? '👧 Fille' : s.sexe === 'M' ? '👦 Garçon' : '⚧ Sexe à préciser'}</span>
               ${ageCalculated ? `<span class="badge-age" title="${birthYear ? `Né(e) en ${birthYear}` : ''}">🎂 ${ageCalculated} ans</span>` : ''}
               ${s.matricule ? `<span style="font-family: monospace;">Mat: ${escapeHtml(s.matricule)}</span>` : ''}
               ${s.contact ? `<span>📞 ${escapeHtml(s.contact)}</span>` : ''}
@@ -898,7 +903,7 @@ window.openEditModal = function(id) {
   document.getElementById('editNom').value = student.nom || '';
   document.getElementById('editPrenom').value = student.prenom || '';
   document.getElementById('editClasse').value = student.classe || '6e 6';
-  document.getElementById('editSexe').value = student.sexe || 'F';
+  document.getElementById('editSexe').value = student.sexe || '';
   document.getElementById('editMatricule').value = student.matricule || '';
 
   const curYear = getCurrentYear();
@@ -1023,15 +1028,43 @@ function handleScanSuccess(decodedText) {
 
   // --- C. TRAITEMENT DU POINTAGE ÉLÈVE ---
   const tokenPrefix = 'smartpresence:';
-  const cleanCode = rawCode.toLowerCase().startsWith(tokenPrefix)
+  const isStudentCardQr = rawCode.toLowerCase().startsWith(tokenPrefix);
+  const cleanCode = isStudentCardQr
     ? rawCode.slice(tokenPrefix.length).trim()
     : rawCode;
 
-  const student = students.find(s => 
-    String(s.idCarte || '').toLowerCase() === cleanCode.toLowerCase() ||
-    String(s.matricule || '').toLowerCase() === cleanCode.toLowerCase() ||
-    String(s.id || '').toLowerCase() === cleanCode.toLowerCase()
+  let student = students.find(s =>
+    String(s.idCarte || '').trim().padStart(4, '0').toLowerCase() === cleanCode.toLowerCase()
   );
+  if (!student && !isStudentCardQr) {
+    student = students.find(s =>
+      String(s.matricule || '').toLowerCase() === cleanCode.toLowerCase() ||
+      String(s.id || '').toLowerCase() === cleanCode.toLowerCase()
+    );
+  }
+
+  let wasCreatedFromBadge = false;
+  if (!student && isStudentCardQr && /^\d{4}$/.test(cleanCode)) {
+    const cardNumber = Number(cleanCode);
+    if (cardNumber >= 1 && cardNumber <= 150) {
+      student = {
+        id: `ELEVE-CARTE-${cleanCode}`,
+        idCarte: cleanCode,
+        matricule: '',
+        nom: 'À IDENTIFIER',
+        prenom: 'ÉLÈVE',
+        sexe: '',
+        age: '',
+        classe: 'À compléter',
+        contact: ''
+      };
+      students.push(student);
+      students = sortStudents(students);
+      student = students.find(s => s.idCarte === cleanCode);
+      saveStudentsLocally();
+      wasCreatedFromBadge = true;
+    }
+  }
 
   if (!student) {
     playAlertBeep();
@@ -1052,8 +1085,14 @@ function handleScanSuccess(decodedText) {
   allAttendance[selectedDate][studentKey] = true;
   saveAttendanceLocally();
   playSuccessBeep();
-  speakVoice(`Présent ! Bienvenue ${student.prenom}.`);
-  setScannerFeedback(`✅ [N° ${student.idCarte || '-'}] ${student.nom} ${student.prenom} marqué(e) PRÉSENT !`, 'success');
+  if (wasCreatedFromBadge) {
+    speakVoice(`Nouvelle carte ajoutée. Élève marqué présent.`);
+    setScannerFeedback(`✅ Nouvelle fiche créée pour la carte ${student.idCarte} et marquée PRÉSENTE. Modifiez son nom dans la liste.`, 'success');
+    showToast(`Carte ${student.idCarte} ajoutée. Complétez la fiche de l'élève.`);
+  } else {
+    speakVoice(`Présent ! Bienvenue ${student.prenom}.`);
+    setScannerFeedback(`✅ [N° ${student.idCarte || '-'}] ${student.nom} ${student.prenom} marqué(e) PRÉSENT !`, 'success');
+  }
 }
 
 async function startScanner() {
@@ -1446,7 +1485,7 @@ window.downloadAttendancePDF = async function() {
       s.matricule || '-',
       `${s.nom} ${s.prenom}`,
       s.classe,
-      s.sexe === 'F' ? 'F' : 'M',
+      s.sexe === 'F' ? 'F' : s.sexe === 'M' ? 'M' : '-',
       ageCalc ? `${ageCalc} ans` : '-',
       s.contact || '-',
       'PRÉSENT'
@@ -1489,7 +1528,7 @@ window.downloadAttendancePDF = async function() {
 
 
 // =====================================================================
-// 14. GÉNÉRATION PDF 2 : 100 BADGES ÉLÈVES (5 PAR LIGNE) + BADGES PROFS
+// 14. GÉNÉRATION PDF 2 : 150 BADGES ÉLÈVES (5 PAR LIGNE) + BADGES PROFS
 // =====================================================================
 
 window.downloadStudentQRCodesPDF = async function() {
@@ -1498,7 +1537,7 @@ window.downloadStudentQRCodesPDF = async function() {
     return;
   }
 
-  showToast("Génération des 100 badges élèves + badges professeurs...");
+  showToast("Génération des 150 badges élèves + badges professeurs...");
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
@@ -1506,6 +1545,7 @@ window.downloadStudentQRCodesPDF = async function() {
   const COLS = 5;      // 5 BADGES PAR LIGNE
   const ROWS = 4;      // 4 LIGNES PAR PAGE = 20 BADGES PAR PAGE
   const BADGES_PER_PAGE = COLS * ROWS;
+  const TOTAL_STUDENT_BADGES = 150;
 
   const cardWidth = 54;    // 54mm de large
   const cardHeight = 44;   // 44mm de haut
@@ -1515,11 +1555,16 @@ window.downloadStudentQRCodesPDF = async function() {
   const marginY = 8;
   const qrSize = 22;       // 22mm x 22mm
 
+  const studentsByCard = new Map(
+    students
+      .filter(student => student.idCarte)
+      .map(student => [String(student.idCarte).trim().padStart(4, '0'), student])
+  );
   const badgeList = [];
-  for (let i = 0; i < 100; i++) {
-    const existing = students[i];
+  for (let i = 0; i < TOTAL_STUDENT_BADGES; i++) {
+    const badgeId = String(i + 1).padStart(4, '0');
+    const existing = studentsByCard.get(badgeId);
     if (existing) {
-      const badgeId = existing.idCarte || String(i + 1).padStart(4, '0');
       badgeList.push({
         badgeNum: badgeId,
         nom: existing.nom,
@@ -1539,7 +1584,7 @@ window.downloadStudentQRCodesPDF = async function() {
     }
   }
 
-  // --- PAGES 1 À 5 : LES 100 BADGES ÉLÈVES (20 par page) ---
+  // --- PAGES 1 À 8 : LES 150 BADGES ÉLÈVES (20 par page) ---
   for (let i = 0; i < badgeList.length; i++) {
     const b = badgeList[i];
     const indexOnPage = i % BADGES_PER_PAGE;
@@ -1583,7 +1628,7 @@ window.downloadStudentQRCodesPDF = async function() {
     doc.text(`Classe : ${b.classe}`, x + cardWidth / 2, y + 41.5, { align: 'center' });
   }
 
-  // --- PAGE 6 : LES BADGES PROFESSEURS ---
+  // --- PAGE 9 : LES BADGES PROFESSEURS ---
   doc.addPage('a4', 'landscape');
 
   doc.setFont('helvetica', 'bold');
@@ -1634,8 +1679,8 @@ window.downloadStudentQRCodesPDF = async function() {
     doc.text("Scanner pour Ouvrir / Fermer la séance", px + profCardWidth / 2, py + 61.5, { align: 'center' });
   }
 
-  doc.save(`planche_100_badges_eleves_et_profs_${selectedDate}.pdf`);
-  showToast("✅ Planche de 100 badges élèves + badges profs téléchargée !");
+  doc.save(`planche_150_badges_eleves_et_profs_${selectedDate}.pdf`);
+  showToast("✅ Planche de 150 badges élèves + badges profs téléchargée !");
 };
 
 function createStudentQRDataUrl(value) {
