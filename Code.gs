@@ -48,6 +48,36 @@ function normalizeCardId(value) {
   return /^\d+$/.test(cardId) ? padZero(cardId, 4) : cardId;
 }
 
+function parseAge(value) {
+  if (value === "" || value == null) return "";
+  var age = Number(value);
+  return isFinite(age) && age > 0 && age <= 100 ? age : "";
+}
+
+// CORRECTION DE LA GESTION DU TÉLÉPHONE CÔTÉ SERVEUR (GOOGLE APPS SCRIPT)
+function formatContactCI(value) {
+  if (value == null || value === "") return "";
+  var contact = String(value).trim();
+  if (!contact) return "";
+  if (contact.indexOf("/") !== -1) {
+    return contact.split("/").map(function(p) {
+      return formatSinglePhoneCI(p.trim());
+    }).filter(Boolean).join(" / ");
+  }
+  return formatSinglePhoneCI(contact);
+}
+
+function formatSinglePhoneCI(phoneVal) {
+  if (!phoneVal) return "";
+  var pStr = String(phoneVal).trim();
+  var digits = pStr.replace(/[^0-9]/g, "");
+  if (digits.length === 9 && ["1", "5", "7", "2"].indexOf(digits.charAt(0)) !== -1) {
+    return "0" + digits;
+  }
+  if (digits.length === 10 && digits.charAt(0) === "0") return digits;
+  return pStr;
+}
+
 function normalizeStudents(input, requireNames) {
   if (!Array.isArray(input)) throw new Error("La liste des élèves doit être un tableau.");
 
@@ -118,12 +148,6 @@ function normalizeStudents(input, requireNames) {
   });
 
   return students;
-}
-
-function parseAge(value) {
-  if (value === "" || value == null) return "";
-  var age = Number(value);
-  return isFinite(age) && age > 0 && age <= 100 ? age : "";
 }
 
 function normalizeStudentSheet(sheet) {
@@ -232,11 +256,6 @@ function doGet() {
 
 function getOrCreateSheet(ss, name, index) {
   return ss.getSheetByName(name) || ss.insertSheet(name, index);
-}
-
-function backupSheet(ss, sheet, prefix) {
-  var backupName = prefix + "_" + new Date().getTime();
-  sheet.copyTo(ss).setName(backupName);
 }
 
 function writeTable(sheet, rows, headerColor, textColumns) {
@@ -376,51 +395,4 @@ function doPost(e) {
   } finally {
     if (lockAcquired) lock.releaseLock();
   }
-}
-
-
-// Fonction de formatage sécurisée (anti "phone is not defined")
-function formatSinglePhone(phone) {
-  // Si le paramètre est vide, absent ou indéfini, on renvoie une chaîne vide sans planter
-  if (phone === null || phone === undefined || phone === '') return '';
-  
-  const digits = String(phone).replace(/\D/g, '');
-  if (!digits) return String(phone).trim();
-
-  // Numéro à 9 chiffres (ex: 757882699 -> 0757882699)
-  if (digits.length === 9 && ['1', '5', '7', '2'].includes(digits[0])) {
-    return '0' + digits;
-  }
-  // Numéro standard à 10 chiffres commençant par 0
-  if (digits.length === 10 && digits.startsWith('0')) {
-    return digits;
-  }
-  // Numéro avec indicatif 225
-  if (digits.startsWith('225') && digits.length === 13) {
-    return '+' + digits;
-  }
-  return String(phone).trim();
-}
-
-function formatContact(val) {
-  if (val === null || val === undefined || val === '') return '';
-  const str = String(val).trim();
-  if (!str) return '';
-
-  if (str.includes('/')) {
-    return str.split('/').map(p => formatSinglePhone(p ? p.trim() : '')).filter(Boolean).join(' / ');
-  }
-  return formatSinglePhone(str);
-}
-
-function formatContactCI(value) {
-  if (value == null || value === "") return "";
-  var contact = String(value).trim();
-  if (!contact) return "";
-  if (contact.indexOf("/") !== -1) {
-    return contact.split("/").map(function(phone) {
-      return formatSinglePhone(phone.trim());
-    }).filter(Boolean).join(" / ");
-  }
-  return formatSinglePhone(phone); // CORRIGÉ : s'appuie sur la fonction de formatage
 }
