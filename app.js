@@ -183,49 +183,59 @@ function playTeacherBeep() {
 
 
 // =====================================================================
-// 4. TRI, FUSION ET GESTION DES IDENTIFIANTS
+// TRI ALPHABÉTIQUE STRICT ET PERMANENT (DE A À Z)
 // =====================================================================
 
 function sortStudents(list) {
   const curYear = getCurrentYear();
-  const sorted = [...list]
-    .filter(Boolean)
-    .map(s => {
-      const bYear = getBirthYear(s);
-      const calcAge = bYear ? (curYear - bYear) : (s.age || '');
-      return {
-        ...s,
-        idCarte: s.idCarte ? String(s.idCarte).trim() : '',
-        anneeNaissance: bYear || s.anneeNaissance || '',
-        age: calcAge || '',
-        contact: formatContact(s.contact)
-      };
-    })
-    .sort((a, b) => {
-      if (a.idCarte && b.idCarte) {
-        const numA = parseInt(a.idCarte, 10);
-        const numB = parseInt(b.idCarte, 10);
-        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-      }
-      const nameA = `${a.nom} ${a.prenom}`.toUpperCase();
-      const nameB = `${b.nom} ${b.prenom}`.toUpperCase();
-      return nameA.localeCompare(nameB, 'fr');
-    });
+  const uniqueMap = new Map();
 
-  const idCounts = new Map();
-  const usedIds = new Set();
-  return sorted.map((student, index) => {
-    const baseId = String(student.id || student.matricule || `ELEVE-${index + 1}`).trim();
-    let suffix = (idCounts.get(baseId) || 0) + 1;
-    let id = suffix === 1 ? baseId : `${baseId}-${suffix}`;
-    while (usedIds.has(id)) {
-      suffix += 1;
-      id = `${baseId}-${suffix}`;
+  // 1. Élimination stricte des doublons basés sur le matricule ou le nom
+  (list || []).filter(Boolean).forEach(s => {
+    const matricule = String(s.matricule || '').trim().toLowerCase();
+    const nomPrenom = `${s.nom || ''}_${s.prenom || ''}`.trim().toLowerCase();
+    
+    const uniqueKey = (matricule && matricule !== '' && matricule !== 'undefined' && matricule !== '-')
+      ? `mat:${matricule}`
+      : `name:${nomPrenom}`;
+
+    if (!uniqueMap.has(uniqueKey)) {
+      uniqueMap.set(uniqueKey, s);
+    } else {
+      const existing = uniqueMap.get(uniqueKey);
+      uniqueMap.set(uniqueKey, { ...existing, ...s });
     }
-    idCounts.set(baseId, suffix);
-    usedIds.add(id);
+  });
 
-    const idCarte = student.idCarte || String(index + 1).padStart(4, '0');
+  // 2. Conversion en tableau et TRI ALPHABÉTIQUE STRICT par Nom puis Prénom
+  const cleanedList = Array.from(uniqueMap.values()).map(s => {
+    const bYear = getBirthYear(s);
+    const calcAge = bYear ? (curYear - bYear) : (s.age || '');
+    return {
+      ...s,
+      idCarte: s.idCarte ? String(s.idCarte).trim() : '',
+      anneeNaissance: bYear || s.anneeNaissance || '',
+      age: calcAge || '',
+      contact: formatContact(s.contact)
+    };
+  }).sort((a, b) => {
+    // Normalisation agressive pour supprimer les accents et les apostrophes (ex: N'GUETTIA -> NGUETTIA)
+    const normalizeStr = (str) => String(str || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/['\s-]/g, '')
+      .toUpperCase();
+
+    const nameA = normalizeStr(`${a.nom} ${a.prenom}`);
+    const nameB = normalizeStr(`${b.nom} ${b.prenom}`);
+
+    return nameA.localeCompare(nameB, 'fr', { sensitivity: 'base' });
+  });
+
+  // 3. Réattribution séquentielle propre des numéros de carte (0001, 0002...) selon le nouvel ordre alphabétique
+  return cleanedList.map((student, index) => {
+    const idCarte = String(index + 1).padStart(4, '0');
+    const id = student.id || student.matricule || `ELEVE-${index + 1}`;
     return { ...student, id, idCarte };
   });
 }
