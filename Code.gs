@@ -378,6 +378,41 @@ function doPost(e) {
   }
 }
 
+
+// Fonction de formatage sécurisée (anti "phone is not defined")
+function formatSinglePhone(phone) {
+  // Si le paramètre est vide, absent ou indéfini, on renvoie une chaîne vide sans planter
+  if (phone === null || phone === undefined || phone === '') return '';
+  
+  const digits = String(phone).replace(/\D/g, '');
+  if (!digits) return String(phone).trim();
+
+  // Numéro à 9 chiffres (ex: 757882699 -> 0757882699)
+  if (digits.length === 9 && ['1', '5', '7', '2'].includes(digits[0])) {
+    return '0' + digits;
+  }
+  // Numéro standard à 10 chiffres commençant par 0
+  if (digits.length === 10 && digits.startsWith('0')) {
+    return digits;
+  }
+  // Numéro avec indicatif 225
+  if (digits.startsWith('225') && digits.length === 13) {
+    return '+' + digits;
+  }
+  return String(phone).trim();
+}
+
+function formatContact(val) {
+  if (val === null || val === undefined || val === '') return '';
+  const str = String(val).trim();
+  if (!str) return '';
+
+  if (str.includes('/')) {
+    return str.split('/').map(p => formatSinglePhone(p ? p.trim() : '')).filter(Boolean).join(' / ');
+  }
+  return formatSinglePhone(str);
+}
+
 function formatContactCI(value) {
   if (value == null || value === "") return "";
   var contact = String(value).trim();
@@ -388,14 +423,4 @@ function formatContactCI(value) {
     }).filter(Boolean).join(" / ");
   }
   return formatSinglePhone(phone); // CORRIGÉ : s'appuie sur la fonction de formatage
-}
-
-function formatSinglePhone(phone) {
-  if (!phone) return "";
-  var digits = String(phone).replace(/[^0-9]/g, "");
-  if (digits.length === 9 && ["1", "5", "7", "2"].indexOf(digits.charAt(0)) !== -1) {
-    return "0" + digits;
-  }
-  if (digits.length === 10 && digits.charAt(0) === "0") return digits;
-  return String(phone).trim();
 }
