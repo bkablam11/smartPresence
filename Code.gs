@@ -275,10 +275,7 @@ function doPost(e) {
 
     var students = normalizeStudents(data.students, true);
     var allAttendance = data.attendances || {};
-    if (!allAttendance || typeof allAttendance !== "object" || Array.isArray(allAttendance)) {
-      throw new Error("Les présences doivent être un objet indexé par date.");
-    }
-
+    
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     if (!ss) throw new Error("Classeur Google Sheets introuvable.");
     lock.waitLock(30000);
@@ -314,10 +311,6 @@ function doPost(e) {
     var detailRows = [DETAIL_HEADERS];
     dates.forEach(function(date) {
       var dayAttendance = allAttendance[date];
-      if (!dayAttendance || typeof dayAttendance !== "object" || Array.isArray(dayAttendance)) {
-        throw new Error("Données de présence invalides pour la date " + date + ".");
-      }
-
       var presentStudents = [];
       students.forEach(function(student) {
         var present = isStudentPresent(dayAttendance, student, matriculeCounts);
@@ -368,40 +361,6 @@ function doPost(e) {
   }
 }
 
-function reparerEtFormaterFeuille() {
-  var lock = LockService.getScriptLock();
-  var lockAcquired = false;
-  try {
-    lock.waitLock(30000);
-    lockAcquired = true;
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = ss && ss.getSheetByName("Élèves");
-    if (!sheet) throw new Error("Onglet Élèves introuvable.");
-
-    var students = normalizeStudentSheet(sheet);
-    var rows = [STUDENT_HEADERS];
-    students.forEach(function(student, index) {
-      rows.push([
-        index + 1,
-        student.idCarte,
-        student.matricule,
-        student.nom,
-        student.prenom,
-        student.sexe,
-        student.age,
-        student.classe,
-        student.contact,
-        "Inscrit",
-        student.id
-      ]);
-    });
-    backupSheet(ss, sheet, "Sauvegarde_Élèves_avant_reparation");
-    writeTable(sheet, rows, "#0f172a", [2, 3, 4, 5, 6, 8, 9, 10, 11]);
-  } finally {
-    if (lockAcquired) lock.releaseLock();
-  }
-}
-
 function formatContactCI(value) {
   if (value == null || value === "") return "";
   var contact = String(value).trim();
@@ -422,73 +381,4 @@ function formatSinglePhone(phone) {
   }
   if (digits.length === 10 && digits.charAt(0) === "0") return digits;
   return String(phone).trim();
-}
-
-/**
- * Restaure les 27 fiches officielles après confirmation et sauvegarde préalable.
- */
-function restaurerListeOfficielle69() {
-  var ui = SpreadsheetApp.getUi();
-  var confirmation = ui.alert(
-    "Remplacer le registre des élèves ?",
-    "Cette opération remplace l'onglet Élèves par la liste officielle de 27 élèves présents. Une copie de sauvegarde sera créée avant le remplacement.",
-    ui.ButtonSet.YES_NO
-  );
-  if (confirmation !== ui.Button.YES) return;
-
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  if (!ss) throw new Error("Classeur Google Sheets introuvable.");
-  var sheet = ss.getSheetByName("Élèves");
-  if (!sheet) sheet = ss.insertSheet("Élèves", 0);
-
-  var lock = LockService.getScriptLock();
-  lock.waitLock(30000);
-  try {
-    backupSheet(ss, sheet, "Sauvegarde_Élèves_avant_restauration");
-
-    var headers = ["N°", "ID Carte", "Matricule", "Nom", "Prénom", "Sexe", "Âge", "Classe", "Contact Parents", "Statut", "ID Élève"];
-    var cleanData = [
-      [1, "0001", "23050709-K", "AMEA", "AKABLA ROSE DE LIMA", "F", 13, "3e 7", "0575422038 / 0585351354", "Inscrit", "23050709-K"],
-      [2, "0002", "24034743-Z", "BAMBA", "HABIBA LEILA", "F", 12, "4e 7", "0788476905", "Inscrit", "24034743-Z"],
-      [3, "0003", "23055288-D", "BAMBA", "NADJOMBGE MARIAM", "F", 13, "3e 7", "0102318218", "Inscrit", "23055288-D"],
-      [4, "0004", "23636373-H", "BAYOU", "EMMANEULLA", "F", 13, "3e 7", "0504429815 / 0103350035", "Inscrit", "23636373-H"],
-      [5, "0005", "24103163-N", "CISSOKO", "BINTOU ZAHARA", "F", 12, "4e 5", "0504775373 / 0546058924", "Inscrit", "24103163-N"],
-      [6, "0006", "26633198-Q", "DEMBELE", "HAMZA", "M", 12, "6e 4", "0707928590", "Inscrit", "26633198-Q"],
-      [7, "0007", "23918359-G", "KAMATE", "AROUNA", "M", 13, "4e6", "0505023131", "Inscrit", "23918359-G"],
-      [8, "0008", "2", "KONAN", "KONAN JOSAPHAT", "M", 11, "4e 2", "0707949166", "Inscrit", "2"],
-      [9, "0009", "24444464-P", "KONAN", "KOUAKOU ISRAEL", "M", 13, "4e 5", "0709003439", "Inscrit", "ELEVE-1791048860882"],
-      [10, "0010", "24496646-S", "KONE", "ABOUBACAR", "M", 13, "4e6", "0707122253", "Inscrit", "24496646-S"],
-      [11, "0011", "23382400-N", "KOUAKOU", "AHOU GNAMIEN SAH TABITHA", "F", 13, "3e 3", "0154685475", "Inscrit", "23382400-N"],
-      [12, "0012", "24119985-Y", "KOUASSI", "BENIS", "M", 13, "4e 5", "0708253230", "Inscrit", "ELEVE-1791048397256"],
-      [13, "0013", "25126750-W", "KOUDOUGOU", "VANESSA", "F", 14, "5e 6", "0707607293 / 0708978637", "Inscrit", "25126750-W"],
-      [14, "0014", "22417315-U", "KOUE ZRANSSEU", "ANGE JERIELLE", "F", 14, "3e 7", "0768435628", "Inscrit", "22417315-U"],
-      [15, "0015", "24045330-A", "LOUKOU", "YOHAN", "M", 13, "4e5", "-", "Inscrit", "24045330A"],
-      [16, "0016", "24039042-Z", "MONI", "ALI", "M", 13, "4e 6", "0748111122", "Inscrit", "24039042-Z"],
-      [17, "0017", "24446727-E", "KOURAOGO", "EL-HADJ KASSIM", "M", 15, "4e 5", "0757772034", "Inscrit", "24446727-E"],
-      [18, "0018", "24478985-P", "OBOUMOU BEDE", "MARIE GRACE", "F", 12, "5e 7", "0555128732", "Inscrit", "24478985-P"],
-      [19, "0019", "24039150-J", "OUATTARA", "NAKOMGNON BINTOU", "F", 12, "4e 5", "0707757276", "Inscrit", "24039150-J"],
-      [20, "0020", "222", "GBOUKROU", "MARIE ANGE PRUNELLE", "F", 12, "4e 5", "0504840080", "Inscrit", "222"],
-      [21, "0021", "2454032244-H", "SILUE", "GNINDANFOLA BEATRICE", "F", 13, "4e 5", "0708448814", "Inscrit", "2454032244-H"],
-      [22, "0022", "ELEVE-1791047871351", "SOUAGA", "ROYAL", "F", 12, "4e 3", "-", "Inscrit", "ELEVE-1791047871351"],
-      [23, "0023", "25225754-Q", "TOTI", "DIVINE", "F", 12, "5e 1", "0749232401", "Inscrit", "25225754-Q"],
-      [24, "0024", "23856970-Q", "TRAORE", "AMINATA", "F", 14, "3e 4", "0505695858", "Inscrit", "23856970-Q"],
-      [25, "0025", "24046919-F", "YEO", "FOUGNIGUE ABIGAEL", "F", 12, "4e 5", "0758027630", "Inscrit", "24046919-F"],
-      [26, "0026", "24024467-U", "N'GUETTIA", "ADJA KOUMAN EPIPHANIE", "F", "", "4e 7", "", "Inscrit", "24024467-U"],
-      [27, "0027", "ELEVE-1793187669063", "KONATE", "MASSERE", "F", "", "4e 7", "", "Inscrit", "ELEVE-1793187669063"]
-    ];
-
-    var rows = [headers].concat(cleanData);
-    sheet.clearContents();
-    // Set text formats before writing so leading zeroes are not lost.
-    sheet.getRange("B:B").setNumberFormat("@");
-    sheet.getRange("I:I").setNumberFormat("@");
-    sheet.getRange(1, 1, rows.length, headers.length).setValues(rows);
-
-    var headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setBackground("#0f172a").setFontColor("#ffffff").setFontWeight("bold");
-    sheet.setFrozenRows(1);
-    for (var c = 1; c <= headers.length; c++) sheet.autoResizeColumn(c);
-  } finally {
-    lock.releaseLock();
-  }
 }
