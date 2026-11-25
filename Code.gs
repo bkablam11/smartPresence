@@ -309,17 +309,26 @@ function doPost(e) {
     var dates = Object.keys(allAttendance).sort().reverse();
     var presenceRows = [PRESENCE_HEADERS];
     var detailRows = [DETAIL_HEADERS];
+    
     dates.forEach(function(date) {
       var dayAttendance = allAttendance[date];
       var presentStudents = [];
+      
+      var formattedDate = date;
+      if (date.indexOf('-') !== -1) {
+        var parts = date.split('-');
+        if (parts.length === 3) formattedDate = parts[2] + '/' + parts[1] + '/' + parts[0];
+      }
+
       students.forEach(function(student) {
         var present = isStudentPresent(dayAttendance, student, matriculeCounts);
         if (present) {
           presentStudents.push(student.nom + " " + student.prenom + " (" + student.classe + ")");
         }
+        
         detailRows.push([
-          date,
-          student.matricule,
+          formattedDate,
+          student.matricule || student.idCarte,
           student.nom,
           student.prenom,
           student.classe,
@@ -330,12 +339,15 @@ function doPost(e) {
       });
 
       var total = students.length;
+      var nbPres = presentStudents.length;
+      var tauxNum = total > 0 ? ((nbPres / total) * 100).toFixed(1) : 0;
+
       presenceRows.push([
-        date,
+        formattedDate,
         total,
-        presentStudents.length,
-        total - presentStudents.length,
-        total ? ((presentStudents.length / total) * 100).toFixed(1) + "%" : "0%",
+        nbPres,
+        total - nbPres,
+        tauxNum + "%",
         presentStudents.join(", "),
         nowFormatted
       ]);
@@ -344,6 +356,11 @@ function doPost(e) {
     writeTable(getOrCreateSheet(ss, "Élèves", 0), studentRows, "#0f172a", [2, 3, 4, 5, 6, 8, 9, 10, 11]);
     writeTable(getOrCreateSheet(ss, "Présences", 1), presenceRows, "#0d9488", [1, 6, 7]);
     writeTable(getOrCreateSheet(ss, "Détail_Appels", 2), detailRows, "#334155", [1, 2, 3, 4, 5, 6, 7, 8]);
+    
+    var sheetDetail = ss.getSheetByName("Détail_Appels");
+    if(sheetDetail && sheetDetail.getLastRow() > 1) {
+      sheetDetail.getRange(2, 6, sheetDetail.getLastRow()-1, 1).setHorizontalAlignment("center");
+    }
 
     return jsonResponse({
       status: "success",
@@ -370,7 +387,7 @@ function formatContactCI(value) {
       return formatSinglePhone(phone.trim());
     }).filter(Boolean).join(" / ");
   }
-  return formatSinglePhone(contact);
+  return formatSinglePhone(phone); // CORRIGÉ : s'appuie sur la fonction de formatage
 }
 
 function formatSinglePhone(phone) {
